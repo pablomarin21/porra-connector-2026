@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -53,6 +53,14 @@
   </div>
 
   <main class="wrap">
+
+  <!-- AVISO persistente para quien NO ha terminado su porra (en todas las pestañas, hasta el cierre) -->
+  <template x-if="view==='pool' && me.id && !isLocked && !status.complete">
+    <div class="incomplete-bar" @click="tab='play'; phase='hub'">
+      <div class="ib-txt"><b>⚠️ Tu porra está SIN TERMINAR.</b> Te falta: <span x-text="status.missing.join(' · ')"></span>.<span x-show="lockCountdown"> Cierra en <b x-text="lockCountdown"></b>.</span></div>
+      <button class="btn gold mini ib-btn" @click.stop="tab='play'; phase='hub'">Terminar →</button>
+    </div>
+  </template>
 
   <!-- Splash mientras carga la porra (o reintento si falla la red) -->
   <section x-show="booting || loadFailed" class="home" style="text-align:center;padding-top:60px">
@@ -927,10 +935,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=7"></script>
-  <script src="engine.js?v=7"></script>
+  <script src="data.js?v=8"></script>
+  <script src="engine.js?v=8"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

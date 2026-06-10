@@ -286,6 +286,10 @@ table.mini tr.qual{background:#eafaf0} table.mini tr.third{background:#fff7e3}
 .at-name{font-weight:700;font-size:.85rem;align-self:end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .at-chip small{color:var(--muted);font-size:.68rem;align-self:start}
 .switch-user{margin-top:10px;font-size:.78rem;padding:7px 14px;color:var(--muted);border:1.5px solid var(--line)}
+/* aviso persistente: porra sin terminar */
+.incomplete-bar{position:sticky;top:6px;z-index:40;display:flex;align-items:center;gap:10px;background:#fff4e0;border:1.5px solid var(--warn);border-radius:12px;padding:10px 12px;margin:0 0 12px;box-shadow:0 6px 18px rgba(224,138,30,.28);cursor:pointer}
+.incomplete-bar .ib-txt{flex:1;font-size:.83rem;color:#7a5410;line-height:1.35}
+.incomplete-bar .ib-btn{flex:none;white-space:nowrap}
 @media(max-width:380px){.at-grid{grid-template-columns:1fr}}
 .dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:16px}
 .dot{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;background:#fff;border:1.5px solid var(--line);color:var(--muted);cursor:pointer}
