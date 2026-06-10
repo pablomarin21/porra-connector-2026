@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -225,7 +225,7 @@
           <div class="how-card"><div class="how-n">2</div><h4>🥉 Terceros automáticos</h4><p>Los <b>8 mejores terceros</b> salen <b>solos</b> de tus marcadores (por puntos → diferencia de goles → goles a favor).</p></div>
           <div class="how-card"><div class="how-n">3</div><h4>🏆 El cuadro</h4><p>Con los 32 clasificados eliges quién gana cada cruce hasta el <b>campeón</b>.</p></div>
         </div>
-        <div class="how-points">🎯 <b>Puntos:</b> <b>marcador exacto</b> de cada partido (y menos por acertar solo el resultado o la diferencia), aciertos de grupo, terceros que clasifican y cada equipo que llega a octavos, cuartos, semis, final y campeón. ¡Cuanto más lejos, más puntos! Las <b>especiales</b> dan puntos extra aparte.</div>
+        <div class="how-points">🎯 <b>Puntos por partido:</b> marcador <b>exacto</b> <span x-text="settings.exact"></span> · acertar resultado <b>y diferencia</b> de goles <span x-text="settings.gd"></span> · acertar solo <b>1-X-2</b> (gana/empata/pierde) <span x-text="settings.result"></span>. Además: aciertos de grupo, terceros que clasifican y cada equipo que llega a octavos, cuartos, semis, final y campeón. Las <b>especiales</b> dan puntos extra aparte.</div>
       </details>
     </div>
 
@@ -245,6 +245,12 @@
           <div class="progress"><i :style="'width:'+(((gIdx+1)/12)*100)+'%'"></i></div>
         </div>
         <p class="gwiz-help"><b>Toca los goles</b> de cada equipo en los <b>6 partidos</b> del grupo. La tabla de abajo se ordena sola: los <b class="cg">2 primeros</b> clasifican directos y el <b class="ct">3º</b> puede entrar como mejor tercero.</p>
+        <div class="score-legend">
+          <span class="sl-t">Puntos por partido:</span>
+          <span class="sl-item exact"><b x-text="settings.exact"></b> 🎯 Marcador exacto</span>
+          <span class="sl-item gd"><b x-text="settings.gd"></b> ➕ Resultado + diferencia</span>
+          <span class="sl-item res"><b x-text="settings.result"></b> ✅ Acertar 1-X-2</span>
+        </div>
         <div class="sc-list">
           <template x-for="fx in groupFixtures(currentLetter)" :key="fx.code">
             <div class="sc-card">
@@ -921,10 +927,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=6"></script>
-  <script src="engine.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="engine.js?v=7"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

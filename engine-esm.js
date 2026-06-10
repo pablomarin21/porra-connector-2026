@@ -9,7 +9,7 @@ const R16=[{"match":89,"a":74,"b":77},{"match":90,"a":73,"b":75},{"match":91,"a"
 const QF=[{"match":97,"a":89,"b":90},{"match":98,"a":93,"b":94},{"match":99,"a":91,"b":92},{"match":100,"a":95,"b":96}];
 const SF=[{"match":101,"a":97,"b":98},{"match":102,"a":99,"b":100}];
 const FINAL={"match":104,"a":101,"b":102};
-const DEFAULT_SCORING={"exact":3,"gd":2,"result":1,"g1":5,"g2":3,"g3":3,"qual":2,"thirdQual":4,"octavos":4,"cuartos":7,"semis":10,"finalists":15,"champion":25,"revelacion":8,"decepcion":8,"pichichi":12,"asistente":10,"hattrick":5,"dobleRoja":5};
+const DEFAULT_SCORING={"exact":5,"gd":3,"result":2,"g1":5,"g2":3,"g3":3,"qual":2,"thirdQual":4,"octavos":4,"cuartos":7,"semis":10,"finalists":15,"champion":25,"revelacion":8,"decepcion":8,"pichichi":12,"asistente":10,"hattrick":5,"dobleRoja":5};
 const ESPN_NAME={"Bosnia-Herzegovina":"Bosnia and Herzegovina","Congo DR":"DR Congo","Curaçao":"Curacao","Czechia":"Czech Republic","Türkiye":"Turkey"};
 const KO_WINDOWS=[{"reached":"octavos","from":"2026-06-28","to":"2026-07-03"},{"reached":"cuartos","from":"2026-07-04","to":"2026-07-07"},{"reached":"semis","from":"2026-07-09","to":"2026-07-11"},{"reached":"final","from":"2026-07-14","to":"2026-07-15"},{"reached":"champion","from":"2026-07-19","to":"2026-07-19"}];
 const TEAM_SET=new Set([].concat(...GROUP_LETTERS.map(L=>GROUPS[L])));
