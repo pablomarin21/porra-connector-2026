@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -631,11 +631,25 @@
         <div class="cal-day">
           <div class="cal-day-h" x-text="day.label"></div>
           <template x-for="m in day.matches" :key="'cm'+m.id">
-            <div class="cal-row" :class="{live:m.live, done:m.done}">
-              <span class="cal-time"><b x-text="m.live?'🔴':(m.done?'FIN':m.time)"></b><small class="cal-venue" x-text="m.venue" x-show="m.venue"></small></span>
-              <span class="cal-t home"><span class="tn" x-text="m.hName"></span> <span class="flag" x-text="m.hFlag"></span></span>
-              <span class="cal-sc" x-text="m.pre ? 'vs' : (m.hs+' - '+m.as)"></span>
-              <span class="cal-t away"><span class="flag" x-text="m.aFlag"></span> <span class="tn" x-text="m.aName"></span></span>
+            <div class="cal-item">
+              <div class="cal-row" :class="{live:m.live, done:m.done, tappable: matchFx(m)}" @click="toggleMatch(m)">
+                <span class="cal-time"><b x-text="m.live?'🔴':(m.done?'FIN':m.time)"></b><small class="cal-venue" x-text="m.venue" x-show="m.venue"></small></span>
+                <span class="cal-t home"><span class="tn" x-text="m.hName"></span> <span class="flag" x-text="m.hFlag"></span></span>
+                <span class="cal-sc" x-text="m.pre ? 'vs' : (m.hs+' - '+m.as)"></span>
+                <span class="cal-t away"><span class="flag" x-text="m.aFlag"></span> <span class="tn" x-text="m.aName"></span></span>
+                <span class="cal-eye" x-show="matchFx(m)" x-text="matchPicksOpen(m)?'▲':'👁️'"></span>
+              </div>
+              <div class="cal-preds" x-show="matchPicksOpen(m)">
+                <div class="cp-head" x-text="(m.live?'🔴 EN DIRECTO · ':'')+'Lo que ha puesto cada uno'"></div>
+                <div class="cp-list" x-show="matchPicks(matchFx(m)).length">
+                  <template x-for="pr in matchPicks(matchFx(m))" :key="'cp'+m.id+pr.id">
+                    <span class="cp-chip" :class="{me:pr.me, exact:pr.hit==='exact', tend:pr.hit==='tend'}">
+                      <span class="cp-name" x-text="pr.name+(pr.me?' (tú)':'')"></span><b class="cp-sc" x-text="pr.h+'-'+pr.a"></b>
+                    </span>
+                  </template>
+                </div>
+                <p class="muted tiny" style="margin:2px 0 0" x-show="!matchPicks(matchFx(m)).length" x-text="isLocked ? 'Nadie predijo este partido.' : 'Las predicciones se ven cuando empiece el Mundial (para que nadie copie).'"></p>
+              </div>
             </div>
           </template>
         </div>
@@ -907,10 +921,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=5"></script>
-  <script src="engine.js?v=5"></script>
+  <script src="data.js?v=6"></script>
+  <script src="engine.js?v=6"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

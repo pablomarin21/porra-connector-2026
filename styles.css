@@ -561,6 +561,20 @@ tr.clickrow.sel td{background:#e7f1ec}
 .cal-t .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cal-sc{flex:0 0 56px;text-align:center;font-weight:800;color:var(--green)}
 .cal-row.live .cal-sc{color:#e0241b}
+.cal-row.tappable{cursor:pointer}
+.cal-eye{flex:0 0 18px;text-align:center;font-size:.78rem;color:var(--muted)}
+/* "lo que ha puesto cada uno" por partido */
+.cal-preds{background:#f6faf8;border-bottom:1px solid var(--line);padding:8px 12px 11px}
+.cal-day .cal-item:last-child .cal-preds{border-bottom:0}
+.cp-head{font-size:.68rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
+.cp-list{display:flex;flex-wrap:wrap;gap:6px}
+.cp-chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px 4px 3px 11px;font-size:.82rem;max-width:100%}
+.cp-name{color:var(--ink);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-sc{background:#eef3f0;border-radius:999px;padding:2px 9px;font-weight:800;color:var(--green);flex:none}
+.cp-chip.me{border-color:var(--gold2);background:#fffdf5}
+.cp-chip.tend .cp-sc{background:#fbecc4;color:var(--gold2)}
+.cp-chip.exact{border-color:var(--ok)}
+.cp-chip.exact .cp-sc{background:var(--ok);color:#fff}
 @media(max-width:640px){
   .cards{grid-template-columns:1fr}
   .hero h1{font-size:1.6rem}

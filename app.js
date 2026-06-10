@@ -12,6 +12,8 @@ const Eng = window.PorraEngine;
 
 const ALL_TEAMS = [].concat(...D.GROUP_LETTERS.map((L) => D.GROUPS[L]));
 const TEAM_GROUP = (function () { const m = {}; for (const L of D.GROUP_LETTERS) for (const t of D.GROUPS[L]) m[t] = L; return m; })();
+// Par de selecciones (orden indiferente) → código de su partido de grupo. Para mostrar "lo que puso cada uno" por partido.
+const PAIR_FX = (function () { const m = {}; for (const fx of D.GROUP_FIXTURES) m[[fx.home, fx.away].slice().sort().join("|")] = fx.code; return m; })();
 const KO_META = []
   .concat(D.R32.map((m) => ({ match: m.match, round: "1/16", stageKey: "r32" })))
   .concat(D.R16.map((m) => ({ match: m.match, round: "Octavos", stageKey: "r16" })))
@@ -38,7 +40,7 @@ const ERRORS = {
 window.porraApp = function () {
   return {
     // navegación
-    view: "home", booting: true, loadFailed: false, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all",
+    view: "home", booting: true, loadFailed: false, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all", openMatch: null,
     teamProbs: {}, teamProbsSims: 0, scorers: [], assisters: [],
     phase: "welcome", gIdx: 0, chosenNew: false, confirmClaim: null, claimFromName: false,
     wmode: "choose", entriesLoaded: false,
@@ -138,6 +140,29 @@ window.porraApp = function () {
         .filter((e) => e.picks && e.picks.groups && e.picks.groups[L] && e.picks.groups[L].length === 4)
         .map((e) => ({ id: e.id, name: e.first_name + " " + e.last_name, me: e.id === this.me.id, bot: (e.first_name || "").startsWith("🤖"), order: e.picks.groups[L] }));
     },
+    // ---------- "lo que ha puesto cada uno" por PARTIDO (marcadores en directo) ----------
+    matchFx(m) { return (m && m.hCanon && m.aCanon) ? (PAIR_FX[[m.hCanon, m.aCanon].slice().sort().join("|")] || null) : null; },
+    matchActual(code) {
+      const g = this.outcome && this.outcome.groupMap && this.outcome.groupMap[code];
+      const r = g || this.results[code];
+      return (r && r.played && r.home_score != null && r.away_score != null) ? [r.home_score, r.away_score] : null;
+    },
+    matchPicks(code) {
+      if (!code) return [];
+      const act = this.matchActual(code);
+      const out = [];
+      for (const e of (this.entries || [])) {
+        const sc = e.picks && e.picks.scores && e.picks.scores[code];
+        if (!sc || sc[0] == null || sc[1] == null) continue;
+        let hit = "";
+        if (act) { if (sc[0] === act[0] && sc[1] === act[1]) hit = "exact"; else if (Math.sign(sc[0] - sc[1]) === Math.sign(act[0] - act[1])) hit = "tend"; }
+        out.push({ id: e.id, name: e.first_name + " " + e.last_name, me: e.id === this.me.id, bot: (e.first_name || "").startsWith("🤖"), h: sc[0], a: sc[1], hit });
+      }
+      out.sort((x, y) => ((y.me ? 1 : 0) - (x.me ? 1 : 0)) || (x.hit === "exact" ? -1 : 0) - (y.hit === "exact" ? -1 : 0) || x.name.localeCompare(y.name));
+      return out;
+    },
+    matchPicksOpen(m) { return this.matchFx(m) && (m.live || this.openMatch === this.matchFx(m)); },
+    toggleMatch(m) { const c = this.matchFx(m); if (!c) return; this.openMatch = this.openMatch === c ? null : c; },
     get liveToday() {
       const live = this.liveMatches.filter((m) => m.live);
       if (live.length) return live;
