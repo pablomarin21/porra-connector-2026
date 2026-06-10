@@ -33,6 +33,12 @@ const ERRORS = {
   POOL_NOT_FOUND: "No existe ninguna porra con ese código.",
   POOL_LOCKED: "La porra está cerrada: ya no se pueden cambiar los pronósticos.",
   NAME_REQUIRED: "Pon tu nombre y tu apellido.",
+  NAME_TOO_LONG: "El nombre o el apellido es demasiado largo (máx. 40 letras).",
+  PICKS_TOO_BIG: "Los datos de tu porra son demasiado grandes.",
+  POOL_FULL: "Esta porra ya está llena.",
+  TOO_MANY_POOLS: "Se ha alcanzado el límite de porras.",
+  CODE_TOO_LONG: "El código es demasiado largo (máx. 24 caracteres).",
+  PIN_TOO_LONG: "El PIN es demasiado largo.",
   BAD_PIN: "PIN incorrecto.",
   PARTICIPANT_NOT_FOUND: "No encuentro tu quiniela en esta porra.",
 };
