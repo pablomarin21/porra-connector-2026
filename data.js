@@ -163,10 +163,10 @@ window.PORRA_DATA = (function () {
 
   // --- Puntuación por defecto (el admin puede cambiarla) ---
   const DEFAULT_SCORING = {
-    // --- marcadores de los 72 partidos de fase de grupos (sistema de puntos por partido) ---
-    exact: 5,       // 🎯 acertar el MARCADOR EXACTO (p.ej. pones 2-1 y queda 2-1)
-    gd: 3,          // ➕ acertar quién gana/empata Y la diferencia de goles (2-1 vs 3-2)
-    result: 2,      // ✅ acertar solo el resultado: victoria / empate / derrota (1-X-2)
+    // --- marcadores de los 72 partidos de fase de grupos (2 niveles: exacto o acertar 1-X-2) ---
+    exact: 5,       // 🎯 acertar el MARCADOR EXACTO (lo clavas: pones 2-1 y queda 2-1)
+    gd: 2,          // (=result) acertar el resultado aunque la diferencia no sea exacta → mismos 2 pts
+    result: 2,      // ✅ acertar victoria / empate / derrota (1-X-2)
     g1: 5,          // acertar el 1º del grupo (posición exacta)
     g2: 3,          // acertar el 2º del grupo (posición exacta)
     g3: 3,          // acertar el 3º del grupo (posición exacta)
