@@ -268,6 +268,16 @@ table.mini tr.qual{background:#eafaf0} table.mini tr.third{background:#fff7e3}
 .sc-tr .t .tn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .sc-tr .pts{font-weight:800;color:var(--green)}
 .sc-tr span:nth-child(3),.sc-tr span:nth-child(4),.sc-tr span:nth-child(5){text-align:center}
+/* ---- 8 mejores terceros automáticos (solo lectura) ---- */
+.autothirds{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;box-shadow:var(--shadow)}
+.autothirds.pend{background:#fff7e3;border-color:#f1e0b0;color:#7a5b12;font-size:.86rem;text-align:center}
+.at-head{font-weight:700;color:var(--green);margin-bottom:9px;font-size:.92rem}
+.at-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.at-chip{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;background:#fff7e3;border:1px solid #f1e0b0;border-radius:9px;padding:6px 9px}
+.at-chip .flag{grid-row:span 2;font-size:1.5rem;align-self:center}
+.at-name{font-weight:700;font-size:.85rem;align-self:end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.at-chip small{color:var(--muted);font-size:.68rem;align-self:start}
+@media(max-width:380px){.at-grid{grid-template-columns:1fr}}
 .dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:16px}
 .dot{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;background:#fff;border:1.5px solid var(--line);color:var(--muted);cursor:pointer}
 .dot.on{background:var(--green);color:#fff;border-color:var(--green)}

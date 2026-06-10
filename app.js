@@ -388,6 +388,12 @@ window.porraApp = function () {
     groupScoresDone(L) { return this.groupScoresFilled(L) === 6; },
     get scoresFilled() { let n = 0; for (const fx of D.GROUP_FIXTURES) { const p = this.scores[fx.code]; if (p && p[0] != null && p[1] != null) n++; } return n; },
     get scoresComplete() { return this.scoresFilled === D.GROUP_FIXTURES.length; },
+    // 8 mejores terceros AUTOMÁTICOS (de los marcadores): por puntos > diferencia de goles > goles a favor
+    get autoThirds() {
+      const r = Eng.standingsFromScores(this.scores);
+      if (!r.qualifiers) return [];
+      return r.qualifiers.thirdsRanked.slice(0, 8).map((t) => ({ team: t.team, group: t.group, pts: t.pts, gd: t.gd, gf: t.gf }));
+    },
 
     // ---------- bracket ----------
     qualFromPicks() {
@@ -413,7 +419,7 @@ window.porraApp = function () {
     get myChampion() { return this._champion; },
     get bracketPicked() { let n = 0; for (const m of [...D.R32, ...D.R16, ...D.QF, ...D.SF, D.FINAL]) if (this.bracket[m.match]) n++; return n; },
     get bracketDone() { return this.bracketPicked === 31; },
-    get prog() { return { groups: this.scoresComplete, thirds: this.thirds.length === 8, bracket: this.bracketDone }; },
+    get prog() { return { groups: this.scoresComplete, bracket: this.bracketDone }; },
 
     goStep(n) {
       if (n >= 3 && this.thirds.length !== 8) { this.toast("Primero elige tus 8 mejores terceros.", "warn"); this.step = 2; return; }
@@ -469,8 +475,10 @@ window.porraApp = function () {
         this.me.id = res.participant_id; this.me.saved = true;
         if (res.claimed && res.picks && Object.keys(res.picks).length) this.applyPicks(res.picks);
         this._persistMe();
-        this.chosenNew = false; this.phase = "hub";
-        this.toast(res.claimed ? ("¡Hola de nuevo, " + this.me.first + "! He recuperado tu porra. 👌") : ("¡Estás dentro, " + this.me.first + "! Ya apareces en la clasificación. 🎉"));
+        this.chosenNew = false;
+        if (res.claimed) { this.phase = "hub"; }                                  // ya existía → ve su resumen
+        else { this.phase = "groups"; this.gIdx = 0; this.deriveGroups(); }        // nuevo → directo a poner marcadores
+        this.toast(res.claimed ? ("¡Hola de nuevo, " + this.me.first + "! He recuperado tu porra. 👌") : ("¡A jugar, " + this.me.first + "! Empieza poniendo los marcadores. 🎯"));
       } catch (e) { this.toast(this.errMsg(e), "err"); }
       finally { this.busy = false; }
     },
@@ -481,8 +489,8 @@ window.porraApp = function () {
         const res = await this.rpc("porra2_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last, p_force_new: true });
         this.me.id = res.participant_id; this.me.saved = true;
         this._persistMe();
-        this.chosenNew = false; this.phase = "hub";
-        this.toast("¡Estás dentro, " + this.me.first + "! Ya apareces en la clasificación. 🎉");
+        this.chosenNew = false; this.phase = "groups"; this.gIdx = 0; this.deriveGroups();
+        this.toast("¡A jugar, " + this.me.first + "! Empieza poniendo los marcadores. 🎯");
       } catch (e) { this.toast(this.errMsg(e), "err"); }
       finally { this.busy = false; }
     },
@@ -522,9 +530,8 @@ window.porraApp = function () {
       const sc = this.scoresFilled, scoresDone = this.scoresComplete;
       const exCount = ["revelacion", "decepcion", "pichichi", "asistente"].filter((k) => e[k]).length + ["hattrick", "dobleRoja"].filter((k) => sb[k]).length;
       const extrasDone = exCount === 6;
-      const generalDone = scoresDone && t === 8 && b === 31;
+      const generalDone = scoresDone && b === 31;   // los terceros salen solos de los marcadores (no se eligen)
       if (!scoresDone) missing.push("poner " + (72 - sc) + " marcador" + (72 - sc > 1 ? "es" : "") + " más (" + sc + "/72)");
-      if (t !== 8) missing.push(t < 8 ? "elegir " + (8 - t) + " tercero" + (8 - t > 1 ? "s" : "") + " más" : "ajustar los terceros");
       if (b !== 31) missing.push("completar el cuadro (" + b + "/31)");
       if (!extrasDone) missing.push("las predicciones especiales (" + exCount + "/6)");
       return {
@@ -534,12 +541,9 @@ window.porraApp = function () {
       };
     },
     startGroups() { this.phase = "groups"; this.gIdx = 0; this.deriveGroups(); },
-    nextGroup() { if (this.gIdx < 11) { this.gIdx++; this.persistDraft(); } else { this.phase = "thirds"; this._save(true); } },
+    nextGroup() { if (this.gIdx < 11) { this.gIdx++; this.persistDraft(); } else { this.rebuild(); this.phase = "bracket"; this._save(true); } },
     prevGroup() { if (this.gIdx > 0) this.gIdx--; else this.goHub(); },
-    goBracketPhase() {
-      if (this.thirds.length !== 8) return this.toast("Elige tus 8 mejores terceros.", "warn");
-      this.rebuild(); this.phase = "bracket"; this._save(true);
-    },
+    goBracketPhase() { this.rebuild(); this.phase = "bracket"; this._save(true); },
     goExtras() { this.phase = "extras"; this._save(true); },
     toggleSideBet(key, val) { if (this.isLocked) return; this.extras.sidebets[key] = this.extras.sidebets[key] === val ? "" : val; this.persistDraft(); },
     async finishPorra() {
