@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -450,22 +450,28 @@
   <section x-show="view==='pool' && tab==='leaderboard'" class="board">
     <div class="step-head">
       <h2>🏆 Clasificación</h2>
-      <p class="muted">La liga de la familia. <span x-show="probBusy">⏳ calculando probabilidades…</span></p>
+      <p class="muted">La clasificación de la porra. <span x-show="probBusy">⏳ calculando probabilidades…</span></p>
     </div>
 
     <!-- Cómo se puntúa (siempre visible) -->
     <details class="scoring-explain">
       <summary>📋 ¿Cómo se puntúa? — el modelo de la porra</summary>
       <div class="se-body">
-        <p><b>Tu pronóstico:</b> el orden de los 12 grupos, los 8 mejores terceros y el cuadro hasta el campeón. Sumas puntos por cada acierto, y cuanto más lejos llega tu equipo, más puntos.</p>
+        <p><b>Tu pronóstico:</b> el <b>marcador</b> de los 72 partidos de grupos (de ahí salen el orden de cada grupo y los 8 mejores terceros) y el <b>cuadro</b> hasta el campeón. Sumas puntos por cada acierto.</p>
         <div class="se-grid">
           <div class="se-card">
-            <h4>📊 Fase de grupos <small>(en cada grupo)</small></h4>
+            <h4>⚽ Cada partido de grupo</h4>
+            <ul>
+              <li><b>Marcador exacto</b> (lo clavas) <span class="pp" x-text="'+'+settings.exact"></span></li>
+              <li>Acertar <b>1-X-2</b> (gana/empata/pierde) <span class="pp" x-text="'+'+settings.result"></span></li>
+            </ul>
+            <h4>📊 Orden del grupo</h4>
             <ul>
               <li>Acertar el <b>1º</b> <span class="pp" x-text="'+'+settings.g1"></span></li>
               <li>Acertar el <b>2º</b> <span class="pp" x-text="'+'+settings.g2"></span></li>
               <li>Acertar el <b>3º</b> <span class="pp" x-text="'+'+settings.g3"></span></li>
-              <li>Equipo que <b>clasifica</b> (top 2), aunque falles el orden <span class="pp" x-text="'+'+settings.qual"></span></li>
+              <li>Equipo que <b>clasifica</b> (top 2) <span class="pp" x-text="'+'+settings.qual"></span></li>
+              <li>🎁 <b>Grupo exacto</b> (orden 1º-4º) <span class="pp" x-text="'+'+settings.groupExact"></span></li>
             </ul>
           </div>
           <div class="se-card">
@@ -478,6 +484,12 @@
               <li>Llega a <b>semifinal</b> <span class="pp" x-text="'+'+settings.semis"></span></li>
               <li>Llega a la <b>final</b> <span class="pp" x-text="'+'+settings.finalists"></span></li>
               <li>Acierta el <b>campeón</b> <span class="pp" x-text="'+'+settings.champion"></span></li>
+            </ul>
+            <h4>⭐ Especiales <small>(aparte)</small></h4>
+            <ul>
+              <li>Revelación <span class="pp" x-text="'+'+settings.revelacion"></span> · Decepción <span class="pp" x-text="'+'+settings.decepcion"></span></li>
+              <li>Pichichi <span class="pp" x-text="'+'+settings.pichichi"></span> · Asistente <span class="pp" x-text="'+'+settings.asistente"></span></li>
+              <li>Hat-trick <span class="pp" x-text="'+'+settings.hattrick"></span> · Doble roja <span class="pp" x-text="'+'+settings.dobleRoja"></span></li>
             </ul>
           </div>
         </div>
@@ -945,10 +957,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=12"></script>
-  <script src="engine.js?v=12"></script>
+  <script src="data.js?v=13"></script>
+  <script src="engine.js?v=13"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
