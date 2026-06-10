@@ -315,6 +315,7 @@
       const top2 = new Set([act[0], act[1]]);
       if (pred[0] && top2.has(pred[0])) total += S.qual;
       if (pred[1] && top2.has(pred[1])) total += S.qual;
+      if (act.length === 4 && pred[0] === act[0] && pred[1] === act[1] && pred[2] === act[2] && pred[3] === act[3]) total += (S.groupExact || 0); // 🎁 bonus: orden completo del grupo (1º-4º)
     }
     if (oc.qualifiedThirdTeams) {
       for (const t of P.thirds) if (oc.qualifiedThirdTeams.has(t)) total += S.thirdQual;
@@ -342,6 +343,7 @@
       const top2 = new Set([act[0], act[1]]);
       if (pred[0] && top2.has(pred[0])) bd.grupos += S.qual;
       if (pred[1] && top2.has(pred[1])) bd.grupos += S.qual;
+      if (act.length === 4 && pred[0] === act[0] && pred[1] === act[1] && pred[2] === act[2] && pred[3] === act[3]) bd.grupos += (S.groupExact || 0); // 🎁 bonus orden completo del grupo
     }
     if (oc.qualifiedThirdTeams) for (const t of P.thirds) if (oc.qualifiedThirdTeams.has(t)) bd.terceros += S.thirdQual;
     const stages = [["octavos", S.octavos, "octavos"], ["cuartos", S.cuartos, "cuartos"], ["semis", S.semis, "semis"], ["final", S.finalists, "final"]];

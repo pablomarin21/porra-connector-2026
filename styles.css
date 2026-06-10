@@ -240,6 +240,7 @@ table.mini tr.qual{background:#eafaf0} table.mini tr.third{background:#fff7e3}
 .score-legend .sl-item.exact b{background:var(--ok)}
 .score-legend .sl-item.gd{border-color:#f1e0b0;background:#fff7e3}
 .score-legend .sl-item.gd b{background:var(--gold2)}
+.group-bonus{margin:10px 0 2px;font-size:.82rem;color:#7a5410;background:#fff7e3;border:1.5px solid #f1e0b0;border-radius:10px;padding:8px 11px;text-align:center}
 .gwiz-help .cg{color:var(--ok)} .gwiz-help .ct{color:var(--gold2)}
 .gwiz-list{display:flex;flex-direction:column;gap:9px}
 .rankrow.big{padding:13px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff}

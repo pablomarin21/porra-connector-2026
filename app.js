@@ -66,6 +66,7 @@ window.porraApp = function () {
       { key: "exact", label: "Marcador exacto (partido)" }, { key: "gd", label: "Resultado + diferencia" }, { key: "result", label: "Solo tendencia (1/X/2)" },
       { key: "g1", label: "Acertar 1º de grupo" }, { key: "g2", label: "Acertar 2º de grupo" },
       { key: "g3", label: "Acertar 3º de grupo" }, { key: "qual", label: "Equipo que clasifica (top 2)" },
+      { key: "groupExact", label: "Bonus: grupo en orden exacto" },
       { key: "thirdQual", label: "Tercero que clasifica" }, { key: "octavos", label: "Llega a octavos" },
       { key: "cuartos", label: "Llega a cuartos" }, { key: "semis", label: "Llega a semifinal" },
       { key: "finalists", label: "Llega a la final" }, { key: "champion", label: "Campeón del mundo" },
