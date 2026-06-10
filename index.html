@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -226,18 +226,30 @@
           <span class="gwiz-count" x-text="'Grupo '+currentLetter+'  ·  '+(gIdx+1)+' de 12'"></span>
           <div class="progress"><i :style="'width:'+(((gIdx+1)/12)*100)+'%'"></i></div>
         </div>
-        <p class="gwiz-help">Pon el <b>marcador exacto</b> de los <b>6 partidos</b> del grupo. La tabla de abajo se ordena sola: los <b class="cg">2 primeros</b> clasifican directos y el <b class="ct">3º</b> puede entrar como mejor tercero.</p>
+        <p class="gwiz-help"><b>Toca los goles</b> de cada equipo en los <b>6 partidos</b> del grupo. La tabla de abajo se ordena sola: los <b class="cg">2 primeros</b> clasifican directos y el <b class="ct">3º</b> puede entrar como mejor tercero.</p>
         <div class="sc-list">
           <template x-for="fx in groupFixtures(currentLetter)" :key="fx.code">
-            <div class="sc-row">
-              <span class="sc-md" x-text="'J'+fx.md"></span>
-              <span class="sc-team h"><span class="tn" x-text="es(fx.home)"></span><span class="flag" x-text="flag(fx.home)"></span></span>
-              <span class="sc-in">
-                <input type="number" inputmode="numeric" min="0" max="20" :disabled="isLocked" :value="scoreVal(fx.code,0)" @input="setScore(fx.code,0,$event.target.value)">
-                <span class="sc-dash">–</span>
-                <input type="number" inputmode="numeric" min="0" max="20" :disabled="isLocked" :value="scoreVal(fx.code,1)" @input="setScore(fx.code,1,$event.target.value)">
-              </span>
-              <span class="sc-team a"><span class="flag" x-text="flag(fx.away)"></span><span class="tn" x-text="es(fx.away)"></span></span>
+            <div class="sc-card">
+              <div class="sc-card-top">
+                <span class="sc-md" x-text="'Jornada '+fx.md"></span>
+                <span class="sc-pick" x-show="scoreVal(fx.code,0)!=='' && scoreVal(fx.code,1)!==''" x-text="scoreVal(fx.code,0)+' - '+scoreVal(fx.code,1)"></span>
+              </div>
+              <div class="sc-side">
+                <span class="sc-teamname"><span class="flag" x-text="flag(fx.home)"></span><span x-text="es(fx.home)"></span></span>
+                <div class="sc-nums">
+                  <template x-for="n in [0,1,2,3,4,5]" :key="'h'+fx.code+n">
+                    <button class="sc-num" :class="{on: scoreVal(fx.code,0)===n}" :disabled="isLocked" @click="setScore(fx.code,0,n)" x-text="n"></button>
+                  </template>
+                </div>
+              </div>
+              <div class="sc-side">
+                <span class="sc-teamname"><span class="flag" x-text="flag(fx.away)"></span><span x-text="es(fx.away)"></span></span>
+                <div class="sc-nums">
+                  <template x-for="n in [0,1,2,3,4,5]" :key="'a'+fx.code+n">
+                    <button class="sc-num" :class="{on: scoreVal(fx.code,1)===n}" :disabled="isLocked" @click="setScore(fx.code,1,n)" x-text="n"></button>
+                  </template>
+                </div>
+              </div>
             </div>
           </template>
         </div>
@@ -877,10 +889,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=2"></script>
-  <script src="engine.js?v=2"></script>
+  <script src="data.js?v=3"></script>
+  <script src="engine.js?v=3"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

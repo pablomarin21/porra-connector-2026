@@ -241,20 +241,20 @@ table.mini tr.qual{background:#eafaf0} table.mini tr.third{background:#fff7e3}
 .rankrow.big .tname{font-size:1.02rem}
 .rankrow.big .arrows button{width:38px;height:26px;font-size:.85rem}
 /* ---- entrada de marcadores (fase de grupos) ---- */
-.sc-list{display:flex;flex-direction:column;gap:8px}
-.sc-row{display:grid;grid-template-columns:34px 1fr auto 1fr;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:9px 10px}
-.sc-md{font-size:.62rem;font-weight:800;color:var(--muted);background:#eef3f0;border-radius:6px;padding:3px 0;text-align:center}
-.sc-team{display:flex;align-items:center;gap:6px;min-width:0}
-.sc-team.h{justify-content:flex-end;text-align:right}
-.sc-team.a{justify-content:flex-start;text-align:left}
-.sc-team .flag{font-size:1.35rem;flex:none}
-.sc-team .tn{font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sc-in{display:flex;align-items:center;gap:5px}
-.sc-in input{width:42px;height:42px;text-align:center;font-size:1.15rem;font-weight:800;padding:0;border:1.5px solid var(--line);border-radius:10px;color:var(--green);-moz-appearance:textfield}
-.sc-in input:focus{border-color:var(--green2);background:#f3faf6}
-.sc-in input::-webkit-outer-spin-button,.sc-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.sc-in input:disabled{background:#f2f5f3;color:var(--muted)}
-.sc-dash{font-weight:800;color:var(--muted)}
+.sc-list{display:flex;flex-direction:column;gap:10px}
+/* tarjeta de partido con botones de goles (toca el número) */
+.sc-card{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:10px 12px;box-shadow:0 2px 8px rgba(11,61,46,.05)}
+.sc-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;min-height:24px}
+.sc-md{font-size:.64rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.sc-pick{font-weight:800;color:var(--green);background:#eaf4ee;border-radius:8px;padding:2px 11px;font-size:.98rem}
+.sc-side{margin:6px 0}
+.sc-teamname{display:flex;align-items:center;gap:7px;font-weight:600;font-size:.95rem;margin-bottom:5px}
+.sc-teamname .flag{font-size:1.4rem;flex:none}
+.sc-nums{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.sc-num{height:42px;border:1.5px solid var(--line);border-radius:9px;background:#fbfdfc;font-weight:800;font-size:1.05rem;color:var(--ink);transition:transform .05s,background .1s}
+.sc-num:active{transform:scale(.9)}
+.sc-num.on{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 2px 8px rgba(11,61,46,.28)}
+.sc-num:disabled{opacity:.45}
 .sc-fillnote{margin:11px 0 4px;font-size:.8rem;font-weight:700;color:var(--warn);text-align:center}
 .sc-fillnote.done{color:var(--ok)}
 .sc-table{margin-top:6px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
