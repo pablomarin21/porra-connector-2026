@@ -46,7 +46,7 @@ window.porraApp = function () {
     pool: null, me: { first: "", last: "", id: null, saved: false },
     joinCode: "", newPool: { name: "", code: "", pin: "" }, recent: [],
     // ui
-    toasts: [], busy: false, probBusy: false, syncBusy: false, syncMsg: "",
+    toasts: [], busy: false, probBusy: false, syncBusy: false, syncMsg: "", _saveTimer: null,
     showInstall: false, deferredPrompt: null,
     // pronósticos
     groups: emptyGroups(), scores: emptyScores(), derivedStandings: {}, thirds: [], _thirdsTouched: false, bracket: {}, _cols: [], _champion: null,
@@ -313,7 +313,10 @@ window.porraApp = function () {
       let mine = null, draft = null;
       try { mine = JSON.parse(localStorage.getItem("porra_me_" + code) || "null"); } catch (e) {}
       try { draft = JSON.parse(localStorage.getItem("porra_draft_" + code) || "null"); } catch (e) {}
-      const src = mine || draft;
+      // Elegir la copia MÁS COMPLETA (el borrador se escribe en cada cambio → suele ser el más fresco;
+      // así una recarga del móvil no pierde los pronósticos a medio rellenar).
+      const fullness = (o) => { if (!o) return -1; const pk = o.picks || o; let n = 0; const s = pk.scores || {}; for (const k in s) { const v = s[k]; if (Array.isArray(v) && v[0] != null && v[1] != null) n++; } return n + Object.keys(pk.bracket || {}).length; };
+      const src = fullness(draft) > fullness(mine) ? draft : (mine || draft);
       this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this._thirdsTouched = false; this.bracket = {};
       this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} };
       this.me = { first: "", last: "", id: null, saved: false };
@@ -332,6 +335,13 @@ window.porraApp = function () {
     persistDraft() {
       if (!this.pool) return;
       localStorage.setItem("porra_draft_" + this.pool.code, JSON.stringify({ scores: this.scores, groups: this.groups, thirds: this.thirds, thirdsTouched: this._thirdsTouched, bracket: this.bracket, extras: this.extras, first: this.me.first, last: this.me.last }));
+      this._scheduleSave();   // guardar también en el servidor (con retardo) para no perder nada
+    },
+    // Autoguardado al servidor: 1,5 s tras el último cambio (marcadores, cuadro, especiales…).
+    _scheduleSave() {
+      if (this.isLocked || !this.me.id) return;
+      clearTimeout(this._saveTimer);
+      this._saveTimer = setTimeout(() => { if (this.me.id && !this.isLocked) this._save(true); }, 1500);
     },
 
     // ---------- paso 1: grupos ----------
