@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -233,7 +233,17 @@
           <div class="how-card"><div class="how-n">2</div><h4>🥉 Terceros automáticos</h4><p>Los <b>8 mejores terceros</b> salen <b>solos</b> de tus marcadores (por puntos → diferencia de goles → goles a favor).</p></div>
           <div class="how-card"><div class="how-n">3</div><h4>🏆 El cuadro</h4><p>Con los 32 clasificados eliges quién gana cada cruce hasta el <b>campeón</b>.</p></div>
         </div>
-        <div class="how-points">🎯 <b>Puntos por partido:</b> marcador <b>exacto</b> (lo clavas) +<span x-text="settings.exact"></span> · acertar <b>1-X-2</b> (victoria/empate/derrota) +<span x-text="settings.result"></span>. 🎁 <b>Bonus +<span x-text="settings.groupExact"></span></b> si un grupo queda <b>exacto en tu orden</b> (1º-4º). Además: aciertos de grupo, terceros que clasifican y cada equipo que llega a octavos, cuartos, semis, final y campeón. Las <b>especiales</b> dan puntos extra aparte.</div>
+        <div class="how-points">
+          <div class="hp-title">🏆 Cómo se puntúa</div>
+          <ul class="score-list">
+            <li>⚽ <b>Cada partido de grupo:</b> marcador <b>exacto</b> +<span x-text="settings.exact"></span> · acertar el resultado <b>1-X-2</b> (gana/empata/pierde) +<span x-text="settings.result"></span></li>
+            <li>📊 <b>Orden del grupo:</b> acertar el 1º +<span x-text="settings.g1"></span> · 2º +<span x-text="settings.g2"></span> · 3º +<span x-text="settings.g3"></span> · cada equipo que clasifica (top 2) +<span x-text="settings.qual"></span></li>
+            <li>🎁 <b>Bonus grupo exacto:</b> si el grupo queda <b>justo en tu orden</b> (1º-2º-3º-4º) +<span x-text="settings.groupExact"></span></li>
+            <li>🥉 <b>Mejores terceros:</b> cada tercero tuyo que acaba clasificando +<span x-text="settings.thirdQual"></span></li>
+            <li>🏆 <b>Eliminatorias:</b> por cada equipo que llega a octavos +<span x-text="settings.octavos"></span> · cuartos +<span x-text="settings.cuartos"></span> · semis +<span x-text="settings.semis"></span> · final +<span x-text="settings.finalists"></span> · <b>campeón +<span x-text="settings.champion"></span></b></li>
+            <li>⭐ <b>Especiales (aparte):</b> revelación +<span x-text="settings.revelacion"></span> · decepción +<span x-text="settings.decepcion"></span> · pichichi +<span x-text="settings.pichichi"></span> · asistente +<span x-text="settings.asistente"></span> · hat-trick +<span x-text="settings.hattrick"></span> · doble roja +<span x-text="settings.dobleRoja"></span></li>
+          </ul>
+        </div>
       </details>
     </div>
 
@@ -935,10 +945,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=11"></script>
-  <script src="engine.js?v=11"></script>
+  <script src="data.js?v=12"></script>
+  <script src="engine.js?v=12"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

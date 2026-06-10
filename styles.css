@@ -218,7 +218,11 @@ table.mini tr.qual{background:#eafaf0} table.mini tr.third{background:#fff7e3}
 .how-card h4{margin:6px 0 4px;font-size:1rem}
 .how-card p{font-size:.86rem;color:#45554e;margin:0}
 .how-n{position:absolute;top:-12px;left:14px;width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
-.how-points{margin:14px 0 16px;background:#eaf4ee;border:1px solid #cfe6d8;border-radius:12px;padding:13px 15px;font-size:.9rem;color:#264a3a}
+.how-points{margin:14px 0 16px;background:#eaf4ee;border:1px solid #cfe6d8;border-radius:12px;padding:13px 15px;font-size:.88rem;color:#264a3a}
+.how-points .hp-title{font-weight:800;color:var(--green);font-size:1rem;margin-bottom:8px}
+.how-points .score-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.how-points .score-list li{padding:8px 10px;background:#fff;border:1px solid #cfe6d8;border-radius:9px;line-height:1.4}
+.how-points .score-list b{color:var(--green)}
 
 .miniprog{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
 .miniprog .mp{font-weight:700;font-size:.82rem;color:var(--muted);background:#fff;border:1px solid var(--line);padding:5px 12px;border-radius:999px}
