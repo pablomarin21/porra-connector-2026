@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -54,8 +54,13 @@
 
   <main class="wrap">
 
-  <!-- ===================== HOME ===================== -->
-  <section x-show="view==='home'" class="home">
+  <!-- Splash mientras carga la porra (para que NO se vea la pantalla de inicio) -->
+  <section x-show="booting" class="home" style="text-align:center;padding-top:60px">
+    <div class="hero"><h1>⚽ Porra <span class="grad">Connector 2026</span></h1><p class="lead">Cargando tu porra…</p></div>
+  </section>
+
+  <!-- ===================== HOME (solo si falla la carga) ===================== -->
+  <section x-show="view==='home' && !booting" class="home">
     <div class="hero">
       <h1>La porra del <span class="grad">Mundial 2026</span></h1>
       <p class="lead">Grupos · terceros · eliminatorias · clasificación en vivo y <b>probabilidad de ganar en directo</b> durante todo el torneo. Para todo el grupo, desde el móvil.</p>
@@ -872,10 +877,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js"></script>
-  <script src="engine.js"></script>
+  <script src="data.js?v=2"></script>
+  <script src="engine.js?v=2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

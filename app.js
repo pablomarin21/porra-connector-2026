@@ -38,7 +38,7 @@ const ERRORS = {
 window.porraApp = function () {
   return {
     // navegación
-    view: "home", tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all",
+    view: "home", booting: true, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all",
     teamProbs: {}, teamProbsSims: 0, scorers: [], assisters: [],
     phase: "welcome", gIdx: 0, chosenNew: false, confirmClaim: null, claimFromName: false,
     wmode: "choose", entriesLoaded: false,
@@ -168,7 +168,7 @@ window.porraApp = function () {
       this._espnTimer = setInterval(() => { if (!this.pool) return; if (this.tab === "leaderboard") this.loadBoard(); else if (this.tab === "results") this.fetchEspn(false); }, 60000);
       // El enlace carga directamente la porra Connector → el usuario solo pone nombre + apellido.
       const code = new URLSearchParams(location.search).get("porra");
-      await this.loadPool(code || DEFAULT_POOL);
+      try { await this.loadPool(code || DEFAULT_POOL); } finally { this.booting = false; }
     },
 
     // ---------- cierre automático ----------
