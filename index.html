@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -54,13 +54,22 @@
 
   <main class="wrap">
 
-  <!-- Splash mientras carga la porra (para que NO se vea la pantalla de inicio) -->
-  <section x-show="booting" class="home" style="text-align:center;padding-top:60px">
-    <div class="hero"><h1>⚽ Porra <span class="grad">Connector 2026</span></h1><p class="lead">Cargando tu porra…</p></div>
+  <!-- Splash mientras carga la porra (o reintento si falla la red) -->
+  <section x-show="booting || loadFailed" class="home" style="text-align:center;padding-top:60px">
+    <div class="hero">
+      <h1>⚽ Porra <span class="grad">Connector 2026</span></h1>
+      <p class="lead" x-show="booting">Cargando tu porra…</p>
+      <template x-if="loadFailed">
+        <div>
+          <p class="lead">No hemos podido cargar la porra. Revisa tu conexión a internet.</p>
+          <button class="btn gold big" @click="retryLoad()">🔄 Reintentar</button>
+        </div>
+      </template>
+    </div>
   </section>
 
-  <!-- ===================== HOME (solo si falla la carga) ===================== -->
-  <section x-show="view==='home' && !booting" class="home">
+  <!-- ===================== HOME (fallback, normalmente no se ve) ===================== -->
+  <section x-show="view==='home' && !booting && !loadFailed" class="home">
     <div class="hero">
       <h1>La porra del <span class="grad">Mundial 2026</span></h1>
       <p class="lead">Grupos · terceros · eliminatorias · clasificación en vivo y <b>probabilidad de ganar en directo</b> durante todo el torneo. Para todo el grupo, desde el móvil.</p>
@@ -131,8 +140,16 @@
         <p class="muted">Cargando…</p>
       </div>
 
+      <!-- Porra ya cerrada y eres nuevo: no se puede entrar (en vez de un formulario muerto) -->
+      <div class="card welcome-card" x-show="entriesLoaded && isLocked && !me.id" style="text-align:center">
+        <div style="font-size:2.4rem">⏰</div>
+        <h3 style="margin:6px 0;color:var(--green)">La porra ya está cerrada</h3>
+        <p class="muted">El Mundial ya ha empezado y no se admiten quinielas nuevas. Pero puedes seguir la <b>clasificación en directo</b>.</p>
+        <button class="btn gold block big" style="margin-top:10px" @click="openLeaderboard()">🏆 Ver la clasificación</button>
+      </div>
+
       <!-- Solo nombre + apellido y a jugar. Recupera por nombre (sin duplicados). -->
-      <div class="card welcome-card" x-show="entriesLoaded">
+      <div class="card welcome-card" x-show="entriesLoaded && !isLocked">
         <h3 style="margin:0 0 6px;text-align:center">🏁 Entra a la porra</h3>
         <p class="muted tiny" style="margin:0 0 10px;text-align:center">Pon tu <b>nombre y apellido</b>. Si ya jugaste, te recupero tu porra con el mismo nombre — <b>sin duplicados</b>.</p>
         <label>Tu nombre</label>
@@ -163,6 +180,7 @@
       <div class="hub-head">
         <h2 x-text="'Hola, '+(me.first||'')+' 👋'"></h2>
         <p class="muted">Esta es <b>tu porra</b>. Toca un apartado para verlo o cambiarlo cuando quieras. <b>Se guarda solo.</b></p>
+        <button class="btn ghost mini switch-user" @click="logout()" x-text="'👤 No soy '+(me.first||'')+' · cambiar de jugador'"></button>
       </div>
 
       <template x-if="status.complete">
@@ -889,10 +907,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=4"></script>
-  <script src="engine.js?v=4"></script>
+  <script src="data.js?v=5"></script>
+  <script src="engine.js?v=5"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

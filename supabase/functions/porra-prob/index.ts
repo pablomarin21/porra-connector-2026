@@ -48,14 +48,16 @@ Deno.serve(async (req: Request) => {
       const extra = ENGINE.scoreExtras(picks.extras, extrasActual, S).total;
       return { id: p.id, first_name: p.first_name, last_name: p.last_name, dp, extra, points: base + extra, complete: isComplete(picks) };
     });
-    let rows: any[] = [];
+    let rows: any[] = []; let simsUsed = 0;
     if (entries.length) {
-      const N = entries.length > 40 ? 2000 : 4000;
-      const mc = ENGINE.monteCarlo(entries.map((e: any) => ({ id: e.id, picks: e.dp, extraPts: e.extra })), (oc.groupMap || dbResults), N, S, Math.random);
+      const N = entries.length > 40 ? 2000 : 4000; simsUsed = N;
+      // Base de la simulación: resultados de DB (grupos + ELIMINATORIAS por nº de partido) + marcadores de grupo en vivo (ESPN).
+      const simMap = Object.assign({}, dbResults, oc.groupMap || {});
+      const mc = ENGINE.monteCarlo(entries.map((e: any) => ({ id: e.id, picks: e.dp, extraPts: e.extra })), simMap, N, S, Math.random);
       rows = entries.map((e: any) => ({ id: e.id, first_name: e.first_name, last_name: e.last_name, points: e.points, win: mc.byId[e.id].win, podium: mc.byId[e.id].podium, avg: mc.byId[e.id].avg, complete: e.complete }));
     }
     rows.sort((a: any, b: any) => (b.points - a.points) || ((b.win || 0) - (a.win || 0)) || String(a.last_name).localeCompare(String(b.last_name)));
     const locked = !!(pool.locked || (pool.lock_at && Date.now() >= Date.parse(pool.lock_at)));
-    return jsonR({ locked, count: rows.length, incomplete: rows.filter((r: any) => !r.complete).length, rows });
+    return jsonR({ locked, count: rows.length, incomplete: rows.filter((r: any) => !r.complete).length, sims: simsUsed, rows });
   } catch (e) { return jsonR({ error: String((e as any)?.message || e) }, 500); }
 });

@@ -38,7 +38,7 @@ const ERRORS = {
 window.porraApp = function () {
   return {
     // navegación
-    view: "home", booting: true, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all",
+    view: "home", booting: true, loadFailed: false, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all",
     teamProbs: {}, teamProbsSims: 0, scorers: [], assisters: [],
     phase: "welcome", gIdx: 0, chosenNew: false, confirmClaim: null, claimFromName: false,
     wmode: "choose", entriesLoaded: false,
@@ -167,8 +167,20 @@ window.porraApp = function () {
       window.addEventListener("appinstalled", () => { this.deferredPrompt = null; this.showInstall = false; });
       this._espnTimer = setInterval(() => { if (!this.pool) return; if (this.tab === "leaderboard") this.loadBoard(); else if (this.tab === "results") this.fetchEspn(false); }, 60000);
       // El enlace carga directamente la porra Connector → el usuario solo pone nombre + apellido.
+      // Reintenta si la red falla (datos móviles flojos / cold start) en vez de caer a la pantalla de inicio.
       const code = new URLSearchParams(location.search).get("porra");
-      try { await this.loadPool(code || DEFAULT_POOL); } finally { this.booting = false; }
+      let ok = false;
+      for (let i = 0; i < 4 && !ok; i++) {
+        ok = await this.loadPool(code || DEFAULT_POOL);
+        if (!ok) await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+      }
+      this.booting = false; this.loadFailed = !ok;
+    },
+    async retryLoad() {
+      this.loadFailed = false; this.booting = true;
+      const code = new URLSearchParams(location.search).get("porra");
+      const ok = await this.loadPool(code || DEFAULT_POOL);
+      this.booting = false; this.loadFailed = !ok;
     },
 
     // ---------- cierre automático ----------
@@ -269,7 +281,7 @@ window.porraApp = function () {
       this.busy = true;
       try {
         const pool = await this.rpc("porra2_get_pool", { p_code: code });
-        if (!pool) { this.toast(ERRORS.POOL_NOT_FOUND, "err"); return; }
+        if (!pool) { this.toast(ERRORS.POOL_NOT_FOUND, "err"); return false; }
         this.pool = pool;
         this.settings = Object.assign({}, D.DEFAULT_SCORING, pool.settings || {});
         this.view = "pool"; this.tab = "play"; this.step = 1;
@@ -281,8 +293,15 @@ window.porraApp = function () {
         await this.loadExtrasActual();
         await this.loadResults();
         await this.loadEntries();
+        // Si mi id guardado ya no existe (p.ej. participante borrado), reconciliar por nombre o pedir el nombre otra vez.
+        if (this.me.id && (this.entries || []).length && !this.entries.some((e) => e.id === this.me.id)) {
+          const m = (this.entries || []).find((e) => this._sameName(e));
+          if (m) { this.me.id = m.id; this._persistMe(); }
+          else { this.me.id = null; this.me.saved = false; this.phase = "welcome"; }
+        }
         this.fetchEspn(true);
-      } catch (e) { this.toast(this.errMsg(e), "err"); } finally { this.busy = false; }
+        return true;
+      } catch (e) { this.toast(this.errMsg(e), "err"); return false; } finally { this.busy = false; }
     },
     async loadExtrasActual() {
       try { this.extrasActual = (await this.rpc("porra2_get_extras", {})) || {}; } catch (e) { this.extrasActual = {}; }
@@ -534,6 +553,19 @@ window.porraApp = function () {
     // panel "Mi porra" (resumen): navegación fácil + estado
     editSection(name) { this.deriveGroups(); if (name === "groups") this.gIdx = 0; this.phase = name; },
     goHub() { if (!this.isLocked) { this._save(true); this.toast("Guardado ✓"); } this.phase = "hub"; },
+    // Cambiar de jugador (móvil compartido): cierra la sesión local y vuelve a pedir nombre.
+    logout() {
+      clearTimeout(this._saveTimer);
+      if (this.pool) { try { localStorage.removeItem("porra_me_" + this.pool.code); localStorage.removeItem("porra_draft_" + this.pool.code); } catch (e) {} }
+      this.me = { first: "", last: "", id: null, saved: false };
+      this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this._thirdsTouched = false; this.bracket = {};
+      this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} };
+      this.deriveGroups();
+      this.chosenNew = false; this.confirmClaim = null; this.claimFromName = false; this.wmode = "choose";
+      this.selectedId = null; this.det = null;
+      this.phase = "welcome"; this.tab = "play";
+      this.toast("Sesión cerrada. Pon tu nombre para entrar.");
+    },
     get extrasFilled() { const e = this.extras, sb = e.sidebets || {}; return !!(e.revelacion || e.decepcion || e.pichichi || e.asistente || sb.hattrick || sb.dobleRoja); },
     get status() {
       const t = this.thirds.length, b = this.bracketPicked, e = this.extras, sb = e.sidebets || {}, missing = [];
@@ -690,7 +722,8 @@ window.porraApp = function () {
       const mcEntries = this.entries.filter((e) => e.picks).map((e) => ({ id: e.id, picks: Eng.derivePicks(e.picks), extraPts: Eng.scoreExtras(e.picks.extras, this.extrasActual, S).total }));
       if (!mcEntries.length) return this.toast("No hay quinielas guardadas todavía.", "warn");
       this.simN = mcEntries.length > 60 ? 1500 : mcEntries.length > 30 ? 2500 : 4000;
-      const simResults = (this.outcome && this.outcome.groupMap) ? this.outcome.groupMap : this.results;
+      // Base de la simulación: resultados de DB (incluye eliminatorias por nº de partido) + marcadores de grupo en vivo.
+      const simResults = Object.assign({}, this.results, (this.outcome && this.outcome.groupMap) || {});
       this.probBusy = true;
       setTimeout(() => {
         try {

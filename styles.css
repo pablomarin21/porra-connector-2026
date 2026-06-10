@@ -277,6 +277,7 @@ table.mini tr.qual{background:#eafaf0} table.mini tr.third{background:#fff7e3}
 .at-chip .flag{grid-row:span 2;font-size:1.5rem;align-self:center}
 .at-name{font-weight:700;font-size:.85rem;align-self:end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .at-chip small{color:var(--muted);font-size:.68rem;align-self:start}
+.switch-user{margin-top:10px;font-size:.78rem;padding:7px 14px;color:var(--muted);border:1.5px solid var(--line)}
 @media(max-width:380px){.at-grid{grid-template-columns:1fr}}
 .dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:16px}
 .dot{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;background:#fff;border:1.5px solid var(--line);color:var(--muted);cursor:pointer}
