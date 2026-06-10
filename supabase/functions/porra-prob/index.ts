@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 // IMPORTANTE: el bundler de Supabase NO permite importar desde github.io, pero sí desde cdn.jsdelivr.net.
 // Esta URL se fija al commit que contiene engine-esm.js del repo de la porra Connector (se rellena al desplegar).
-import { DATA, ENGINE } from "https://cdn.jsdelivr.net/gh/pablomarin21/porra-connector-2026@0eee8a295226eb04e0a0611f2bdbd840792f3c6a/engine-esm.js";
+import { DATA, ENGINE } from "https://cdn.jsdelivr.net/gh/pablomarin21/porra-connector-2026@4aba40c18859508a6966fd31905914335dc6495c/engine-esm.js";
 
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const jsonR = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
