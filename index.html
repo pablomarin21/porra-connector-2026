@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Porra Mundial 2026 ⚽</title>
+  <meta name="description" content="La porra del Mundial 2026 para tu grupo: grupos, terceros, eliminatorias, clasificación y probabilidad de ganar en vivo." />
+  <meta name="theme-color" content="#0b3d2e" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body x-data="porraApp()" x-init="init()" x-cloak>
+
+  <!-- ===================== CABECERA ===================== -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" @click.prevent="goHome()" href="#">
+        <span class="ball">⚽</span>
+        <span class="brand-txt">Porra <b>Mundial 2026</b></span>
+      </a>
+      <button class="install-btn" x-show="!isStandalone" @click="showInstall=true" title="Añadir al móvil como app">📲 Instalar</button>
+      <template x-if="pool">
+        <nav class="tabs">
+          <button :class="{active: tab==='play'}" @click="tab='play'">Mi quiniela</button>
+          <button :class="{active: tab==='leaderboard'}" @click="openLeaderboard()">Clasificación</button>
+          <button :class="{active: tab==='results'}" @click="openResults()">Resultados</button>
+          <button :class="{active: tab==='admin'}" @click="tab='admin'">Admin</button>
+        </nav>
+      </template>
+    </div>
+    <template x-if="pool">
+      <div class="poolbar">
+        <span>Porra: <b x-text="pool.name"></b></span>
+        <span class="code-chip" @click="copyShare()" title="Copiar enlace para tu grupo">
+          Código <b x-text="pool.code"></b> · 🔗 copiar enlace
+        </span>
+        <span class="lock-chip" :class="pool.locked ? 'closed':'open'" x-text="pool.locked ? '🔒 Cerrada' : '✏️ Abierta'"></span>
+      </div>
+    </template>
+  </header>
+
+  <!-- ===================== TOASTS ===================== -->
+  <div class="toasts">
+    <template x-for="t in toasts" :key="t.id">
+      <div class="toast" :class="t.kind" x-text="t.msg"></div>
+    </template>
+  </div>
+
+  <main class="wrap">
+
+  <!-- ===================== HOME ===================== -->
+  <section x-show="view==='home'" class="home">
+    <div class="hero">
+      <h1>La porra del <span class="grad">Mundial 2026</span></h1>
+      <p class="lead">Grupos · terceros · eliminatorias · clasificación en vivo y <b>probabilidad de ganar en directo</b> durante todo el torneo. Para todo el grupo, desde el móvil.</p>
+      <div class="schedule-mini">
+        <span>🏟️ 48 selecciones · 12 grupos</span>
+        <span>📅 11 jun – 19 jul 2026</span>
+      </div>
+    </div>
+
+    <div class="cards">
+      <!-- Unirse -->
+      <div class="card">
+        <h2>👨‍👩‍👧‍👦 Unirme a una porra</h2>
+        <p class="muted">Entra con el código que te ha pasado tu grupo.</p>
+        <label>Código de la porra</label>
+        <input class="big-input" x-model="joinCode" @keydown.enter="joinPool()" placeholder="Ej: CONNECTOR2026" maxlength="24" />
+        <button class="btn primary block" @click="joinPool()" :disabled="busy">Entrar</button>
+      </div>
+
+      <!-- Crear -->
+      <div class="card">
+        <h2>✨ Crear una porra nueva</h2>
+        <p class="muted">Tú eres el organizador. Comparte el código con tu grupo.</p>
+        <label>Nombre de la porra</label>
+        <input x-model="newPool.name" placeholder="Porra Connector 2026" maxlength="60" />
+        <label>Código (lo escribirá tu grupo)</label>
+        <input x-model="newPool.code" placeholder="CONNECTOR2026" maxlength="24" @input="newPool.code = newPool.code.toUpperCase()" />
+        <label>PIN de admin (4+ dígitos) — para meter resultados y cerrar la porra</label>
+        <input x-model="newPool.pin" placeholder="****" maxlength="12" />
+        <button class="btn gold block" @click="createPool()" :disabled="busy">Crear porra</button>
+        <p class="tiny muted">Guarda bien el PIN: con él meterás los resultados de los partidos y bloquearás los pronósticos cuando empiece el Mundial.</p>
+      </div>
+    </div>
+
+    <template x-if="recent.length">
+      <div class="recent">
+        <h3>Tus porras</h3>
+        <div class="recent-list">
+          <template x-for="r in recent" :key="r.code">
+            <button class="recent-item" @click="loadPool(r.code)">
+              <span x-text="r.name"></span><small x-text="r.code"></small>
+            </button>
+          </template>
+        </div>
+      </div>
+    </template>
+  </section>
+
+  <!-- ===================== JUGAR (mi quiniela) ===================== -->
+  <section x-show="view==='pool' && tab==='play'" class="play">
+
+    <template x-if="isLocked">
+      <div class="banner warn">🔒 La porra está cerrada (el Mundial ya ha empezado). Puedes mirar tu quiniela pero no cambiarla. Ve a «Clasificación» para ver cómo vas.</div>
+    </template>
+    <template x-if="!isLocked && lockCountdown">
+      <div class="banner countdown">⏳ Puedes editar hasta <b>1 hora antes</b> del primer partido. <b>Cierra en <span x-text="lockCountdown"></span></b> (jue 11 jun, 18:00 UTC · 20:00 en España).</div>
+    </template>
+
+    <!-- ===== FASE: BIENVENIDA / NOMBRE ===== -->
+    <div x-show="phase==='welcome'" class="phase welcome">
+      <div class="welcome-hero">
+        <div class="wc-emoji">⚽ 🏆</div>
+        <h1>¡Bienvenido a la <span class="grad2">Porra del Mundial 2026</span>!</h1>
+        <p class="lead2">Pon tu nombre y entra. Después harás tus pronósticos paso a paso: <b>grupo por grupo</b>, los <b>mejores terceros</b> y el <b>cuadro final</b>. Tardas 5 minutos y es muy fácil.</p>
+      </div>
+      <!-- Cargando la lista -->
+      <div class="card welcome-card" x-show="!entriesLoaded" style="text-align:center">
+        <p class="muted">Cargando…</p>
+      </div>
+
+      <!-- Elegir: ya tengo usuario / crear usuario -->
+      <div class="card welcome-card" x-show="entriesLoaded && entries.length>0 && wmode==='choose'">
+        <h3 style="margin:0 0 12px;text-align:center">¿Cómo quieres entrar?</h3>
+        <button class="btn gold block big" @click="wmode='pick'">✅ Ya tengo usuario</button>
+        <button class="btn primary block big" @click="wmode='name'" style="margin-top:10px">🆕 Crear usuario nuevo</button>
+        <p class="tiny muted" style="margin-top:12px;text-align:center">¿Ya rellenaste tu porra? Entra con <b>«Ya tengo usuario»</b> y elígete de la lista para recuperarla (no la dupliques).</p>
+      </div>
+
+      <!-- Ya tengo usuario: lista de nombres -->
+      <div class="card welcome-card" x-show="entriesLoaded && entries.length>0 && wmode==='pick'">
+        <button class="btn ghost mini" @click="wmode='choose'" style="margin-bottom:8px">← volver</button>
+        <h3 style="margin:0 0 4px">¿Quién eres?</h3>
+        <p class="muted" style="margin:0 0 12px">Toca tu nombre para entrar con <b>tu porra</b>.</p>
+        <div class="id-list">
+          <template x-for="e in entries" :key="'id'+e.id">
+            <button class="id-name" :class="{bot:(e.first_name||'').startsWith('🤖')}" @click="askClaim(e)" x-text="e.first_name+' '+e.last_name"></button>
+          </template>
+        </div>
+        <button class="btn ghost block" style="margin-top:12px" @click="wmode='name'">No estoy en la lista — crear usuario →</button>
+      </div>
+
+      <!-- Crear usuario (o primer participante) -->
+      <div class="card welcome-card" x-show="(entriesLoaded && entries.length===0) || wmode==='name'">
+        <button class="btn ghost mini" x-show="entries.length>0" @click="wmode='choose'" style="margin-bottom:8px">← volver</button>
+        <h3 style="margin:0 0 8px">🆕 Crear tu usuario</h3>
+        <label>Tu nombre</label>
+        <input x-model="me.first" placeholder="Ej: Lucía" :disabled="isLocked" @keydown.enter="submitName()" />
+        <label>Tu apellido</label>
+        <input x-model="me.last" placeholder="Ej: Torres" :disabled="isLocked" @keydown.enter="submitName()" />
+        <button class="btn gold block big" @click="submitName()" :disabled="busy || isLocked">Crear y entrar →</button>
+        <p class="tiny muted">Al entrar ya apareces en la <b>clasificación</b>. Podrás cambiar tus pronósticos hasta que empiece el Mundial.</p>
+      </div>
+
+      <!-- Confirmación: ¿seguro que eres X? -->
+      <template x-if="confirmClaim">
+        <div class="modal-bg" @click.self="cancelClaim()">
+          <div class="modal" style="max-width:380px;text-align:center">
+            <div style="font-size:2.4rem">🙋</div>
+            <h3 style="color:var(--green);margin:4px 0">¿Eres<br><span x-text="confirmClaim.first_name+' '+confirmClaim.last_name"></span>?</h3>
+            <p class="muted" x-show="claimFromName">Ya hay una porra con ese nombre. Si eres tú, <b>recupérala</b> con todos tus pronósticos.</p>
+            <p class="muted" x-show="!claimFromName">Entrarás como esta persona y recuperarás <b>su porra</b>. Si no eres tú, dale a «No».</p>
+            <button class="btn gold block big" @click="doClaim()" :disabled="busy">✅ Sí, soy yo — recuperar mi porra</button>
+            <button class="btn ghost block" @click="rejectClaim()" :disabled="busy" x-text="claimFromName ? 'No, soy otra persona (crear nueva)' : 'No soy yo'"></button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- ===== FASE: MI PORRA (resumen / hub) ===== -->
+    <div x-show="phase==='hub'" class="phase hub">
+      <div class="hub-head">
+        <h2 x-text="'Hola, '+(me.first||'')+' 👋'"></h2>
+        <p class="muted">Esta es <b>tu porra</b>. Toca un apartado para verlo o cambiarlo cuando quieras. <b>Se guarda solo.</b></p>
+      </div>
+
+      <template x-if="status.complete">
+        <div class="hub-status ok">✅ <b>¡Tu porra está completa!</b> 🍀 ¡Mucha suerte!</div>
+      </template>
+      <template x-if="!status.complete">
+        <div class="hub-status warn">
+          <b>⚠️ Termina tu porra</b>
+          <div x-text="'Te falta: '+status.missing.join('  ·  ')+'.'"></div>
+        </div>
+      </template>
+
+      <button class="btn gold block big" @click="startGroups()"
+        x-text="status.complete ? '✏️ Repasar mi porra' : ((status.thirds || bracketPicked>0 || status.extras) ? '▶️ Continuar mi porra →' : '🚀 ¡Empezar mi porra! →')"></button>
+
+      <p class="muted tiny" style="text-align:center;margin:8px 0 4px">…o toca un apartado para ir directo:</p>
+      <div class="hub-cards">
+        <button class="hub-card" @click="editSection('groups')">
+          <span class="hc-ic">📊</span>
+          <span class="hc-body"><b>1 · Marcadores</b><small>Pon el resultado de los 72 partidos</small></span>
+          <span class="hc-badge" :class="status.scores?'ok':'warn'" x-text="(status.scores?'✅ ':'⚠️ ')+status.scoresTxt"></span>
+        </button>
+        <button class="hub-card" @click="editSection('thirds')">
+          <span class="hc-ic">🥉</span>
+          <span class="hc-body"><b>2 · Mejores terceros</b><small>Elige los 8 mejores</small></span>
+          <span class="hc-badge" :class="status.thirds?'ok':'warn'" x-text="(status.thirds?'✅ ':'⚠️ ')+status.thirdsTxt"></span>
+        </button>
+        <button class="hub-card" @click="editSection('bracket')">
+          <span class="hc-ic">🏆</span>
+          <span class="hc-body"><b>3 · Cuadro final</b><small>De 1/16 al campeón</small></span>
+          <span class="hc-badge" :class="status.bracket?'ok':'warn'" x-text="(status.bracket?'✅ ':'⚠️ ')+status.bracketTxt"></span>
+        </button>
+        <button class="hub-card" @click="editSection('extras')">
+          <span class="hc-ic">⭐</span>
+          <span class="hc-body"><b>4 · Especiales</b><small>Revelación, goleador, asistente…</small></span>
+          <span class="hc-badge" :class="status.extras?'ok':'warn'" x-text="status.extras?'✅ Hecho':('⚠️ '+status.extrasTxt)"></span>
+        </button>
+      </div>
+
+      <button class="btn ghost block" @click="openLeaderboard()">🏆 Ver la clasificación</button>
+
+      <details class="how-collapse" :open="!status.complete">
+        <summary>¿Cómo funciona y cómo se puntúa?</summary>
+        <div class="how-grid">
+          <div class="how-card"><div class="how-n">1</div><h4>⚽ Marcadores exactos</h4><p>Pon el <b>resultado exacto</b> de los <b>72 partidos</b> de grupos. La tabla de cada grupo se ordena sola.</p></div>
+          <div class="how-card"><div class="how-n">2</div><h4>🥉 Mejores terceros</h4><p>Novedad 2026: también clasifican los <b>8 mejores terceros</b>. Elige cuáles crees.</p></div>
+          <div class="how-card"><div class="how-n">3</div><h4>🏆 El cuadro</h4><p>Con los 32 clasificados eliges quién gana cada cruce hasta el <b>campeón</b>.</p></div>
+        </div>
+        <div class="how-points">🎯 <b>Puntos:</b> <b>marcador exacto</b> de cada partido (y menos por acertar solo el resultado o la diferencia), aciertos de grupo, terceros que clasifican y cada equipo que llega a octavos, cuartos, semis, final y campeón. ¡Cuanto más lejos, más puntos! Las <b>especiales</b> dan puntos extra aparte.</div>
+      </details>
+    </div>
+
+    <!-- ===== FASE: GRUPOS (uno a uno) ===== -->
+    <div x-show="phase==='groups'" class="phase">
+      <div class="sec-top">
+        <button class="btn ghost mini" @click="goHub()">← Mi porra</button>
+        <div class="miniprog">
+          <span class="mp on" @click="editSection('groups')">Grupos</span><span class="sep">›</span>
+          <span class="mp" @click="editSection('thirds')">Terceros</span><span class="sep">›</span>
+          <span class="mp" @click="editSection('bracket')">Cuadro</span><span class="sep">›</span>
+          <span class="mp" @click="editSection('extras')">Especiales</span>
+        </div>
+      </div>
+      <div class="gwiz">
+        <div class="gwiz-head">
+          <span class="gwiz-count" x-text="'Grupo '+currentLetter+'  ·  '+(gIdx+1)+' de 12'"></span>
+          <div class="progress"><i :style="'width:'+(((gIdx+1)/12)*100)+'%'"></i></div>
+        </div>
+        <p class="gwiz-help">Pon el <b>marcador exacto</b> de los <b>6 partidos</b> del grupo. La tabla de abajo se ordena sola: los <b class="cg">2 primeros</b> clasifican directos y el <b class="ct">3º</b> puede entrar como mejor tercero.</p>
+        <div class="sc-list">
+          <template x-for="fx in groupFixtures(currentLetter)" :key="fx.code">
+            <div class="sc-row">
+              <span class="sc-md" x-text="'J'+fx.md"></span>
+              <span class="sc-team h"><span class="tn" x-text="es(fx.home)"></span><span class="flag" x-text="flag(fx.home)"></span></span>
+              <span class="sc-in">
+                <input type="number" inputmode="numeric" min="0" max="20" :disabled="isLocked" :value="scoreVal(fx.code,0)" @input="setScore(fx.code,0,$event.target.value)">
+                <span class="sc-dash">–</span>
+                <input type="number" inputmode="numeric" min="0" max="20" :disabled="isLocked" :value="scoreVal(fx.code,1)" @input="setScore(fx.code,1,$event.target.value)">
+              </span>
+              <span class="sc-team a"><span class="flag" x-text="flag(fx.away)"></span><span class="tn" x-text="es(fx.away)"></span></span>
+            </div>
+          </template>
+        </div>
+        <div class="sc-fillnote" :class="{done: groupScoresDone(currentLetter)}"
+             x-text="groupScoresDone(currentLetter) ? ('✅ Grupo '+currentLetter+' completo') : ('Faltan '+(6-groupScoresFilled(currentLetter))+' marcador'+((6-groupScoresFilled(currentLetter))>1?'es':'')+' en este grupo')"></div>
+        <div class="sc-table">
+          <div class="sc-tr sc-th"><span class="pos">#</span><span class="t">Clasificación en vivo</span><span>PJ</span><span>DG</span><span>Pts</span></div>
+          <template x-for="(row,idx) in derivedTable(currentLetter)" :key="'dt'+currentLetter+row.team">
+            <div class="sc-tr" :class="rankClass(idx)">
+              <span class="pos" x-text="(idx+1)+'º'"></span>
+              <span class="t"><span class="flag" x-text="flag(row.team)"></span><span class="tn" x-text="es(row.team)"></span><span class="qtag" x-show="idx<2">clasifica</span><span class="qtag third" x-show="idx===2">3º</span></span>
+              <span x-text="row.pj"></span>
+              <span x-text="(row.gd>0?'+':'')+row.gd"></span>
+              <span class="pts" x-text="row.pts"></span>
+            </div>
+          </template>
+        </div>
+        <div class="step-nav">
+          <button class="btn ghost" @click="prevGroup()" x-text="gIdx===0 ? '← Volver' : '← Grupo anterior'"></button>
+          <button class="btn primary" @click="nextGroup()" x-text="gIdx===11 ? 'Siguiente: terceros →' : 'Siguiente grupo →'"></button>
+        </div>
+        <div class="dots">
+          <template x-for="(L,i) in letters" :key="'dot'+L">
+            <span class="dot" :class="{on:i===gIdx, done:i<gIdx}" @click="gIdx=i" x-text="L"></span>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FASE: TERCEROS ===== -->
+    <div x-show="phase==='thirds'" class="phase">
+      <div class="sec-top">
+        <button class="btn ghost mini" @click="goHub()">← Mi porra</button>
+        <div class="miniprog">
+          <span class="mp done" @click="editSection('groups')">Grupos</span><span class="sep">›</span>
+          <span class="mp on" @click="editSection('thirds')">Terceros</span><span class="sep">›</span>
+          <span class="mp" @click="editSection('bracket')">Cuadro</span><span class="sep">›</span>
+          <span class="mp" @click="editSection('extras')">Especiales</span>
+        </div>
+      </div>
+      <div class="rules-box">
+        <h3>🥉 Los 8 mejores terceros</h3>
+        <p>En el Mundial 2026, de cada grupo pasan los <b>2 primeros</b> (24 equipos). Pero, como novedad, <b>también clasifican los 8 terceros con mejor resultado</b> de entre los 12 grupos. En total son <b>32 equipos</b> en las eliminatorias.</p>
+        <p>👉 Abajo tienes el <b>3º de cada grupo</b> según el orden que pusiste. Elige los <b>8</b> que crees que serán los mejores terceros y se clasificarán.</p>
+      </div>
+      <div class="thirds-counter" :class="{full: thirds.length===8}" x-text="'Elegidos: '+thirds.length+' de 8'"></div>
+      <div class="thirds-grid">
+        <template x-for="L in letters" :key="'t'+L">
+          <button class="third-chip" :class="{picked: thirds.includes(groups[L][2]), dis: !thirds.includes(groups[L][2]) && thirds.length>=8}"
+                  @click="toggleThird(groups[L][2])" :disabled="isLocked">
+            <span class="flag" x-text="flag(groups[L][2])"></span>
+            <span x-text="es(groups[L][2])"></span>
+            <small>3º del Grupo <span x-text="L"></span></small>
+            <span class="check" x-show="thirds.includes(groups[L][2])">✓</span>
+          </button>
+        </template>
+      </div>
+      <div class="step-nav">
+        <button class="btn ghost" @click="goHub()">💾 Guardar y volver</button>
+        <button class="btn primary" @click="goBracketPhase()" :disabled="thirds.length!==8" x-text="thirds.length===8 ? 'Siguiente: el cuadro →' : 'Te faltan '+(8-thirds.length)+' terceros'"></button>
+      </div>
+    </div>
+
+    <!-- ===== FASE: CUADRO ELIMINATORIO ===== -->
+    <div x-show="phase==='bracket'" class="phase">
+      <div class="sec-top">
+        <button class="btn ghost mini" @click="goHub()">← Mi porra</button>
+        <div class="miniprog">
+          <span class="mp done" @click="editSection('groups')">Grupos</span><span class="sep">›</span>
+          <span class="mp done" @click="editSection('thirds')">Terceros</span><span class="sep">›</span>
+          <span class="mp on" @click="editSection('bracket')">Cuadro</span><span class="sep">›</span>
+          <span class="mp" @click="editSection('extras')">Especiales</span>
+        </div>
+      </div>
+      <div class="rules-box">
+        <h3>🏆 El cuadro eliminatorio</h3>
+        <p>Con tus clasificados ya está montado el cuadro. <b>Toca al equipo que crees que gana</b> cada cruce: el ganador avanza solo a la siguiente columna, desde 1/16 hasta la final.</p>
+        <p class="tiny" :class="bracketDone ? 'ok' : 'muted'" x-text="bracketDone ? '✅ ¡Cuadro completo! Tu campeón: '+es(myChampion) : 'Cruces decididos: '+bracketPicked+' de 31  ·  ve tocando ganadores, ronda por ronda ↓'"></p>
+      </div>
+      <div class="bracket-scroll">
+        <div class="bracket">
+          <template x-for="col in bracketCols" :key="col.key">
+            <div class="bcol">
+              <div class="bcol-h" x-text="col.title"></div>
+              <template x-for="m in col.matches" :key="m.match">
+                <div class="bmatch" :class="{nope: !m.a || !m.b}">
+                  <button class="bteam" :class="{sel: bracket[m.match]===m.a, dim: bracket[m.match] && bracket[m.match]!==m.a}"
+                          :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.a)">
+                    <span class="flag" x-text="m.a?flag(m.a):''"></span><span x-text="m.a?es(m.a):'—'"></span>
+                  </button>
+                  <button class="bteam" :class="{sel: bracket[m.match]===m.b, dim: bracket[m.match] && bracket[m.match]!==m.b}"
+                          :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.b)">
+                    <span class="flag" x-text="m.b?flag(m.b):''"></span><span x-text="m.b?es(m.b):'—'"></span>
+                  </button>
+                </div>
+              </template>
+            </div>
+          </template>
+          <div class="bcol champ-col">
+            <div class="bcol-h">🏆 Campeón</div>
+            <div class="champ-box" :class="{set: myChampion}">
+              <span class="flag big" x-text="myChampion?flag(myChampion):'🏆'"></span>
+              <span x-text="myChampion?es(myChampion):'¿?'"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-nav">
+        <button class="btn ghost" @click="goHub()">💾 Guardar y volver</button>
+        <button class="btn primary big" @click="goExtras()">Siguiente: especiales →</button>
+      </div>
+    </div>
+
+    <!-- ===== FASE: PREDICCIONES ESPECIALES (puntos extra) ===== -->
+    <div x-show="phase==='extras'" class="phase">
+      <div class="sec-top">
+        <button class="btn ghost mini" @click="goHub()">← Mi porra</button>
+        <div class="miniprog">
+          <span class="mp done" @click="editSection('groups')">Grupos</span><span class="sep">›</span>
+          <span class="mp done" @click="editSection('thirds')">Terceros</span><span class="sep">›</span>
+          <span class="mp done" @click="editSection('bracket')">Cuadro</span><span class="sep">›</span>
+          <span class="mp on" @click="editSection('extras')">Especiales</span>
+        </div>
+      </div>
+      <div class="rules-box gold">
+        <h3>⭐ Predicciones especiales — puntos extra</h3>
+        <p>Esto va <b>aparte</b> de la porra general y da <b>puntos extra</b> si aciertas. Hay que rellenar <b>las 6</b> para terminar tu porra. <span x-show="!status.extras" x-text="'(llevas '+status.extrasTxt+')'"></span></p>
+      </div>
+      <div class="extras-grid">
+        <div class="extra-card">
+          <label>✨ Selección revelación <span class="pp" x-text="'+'+settings.revelacion"></span></label>
+          <select x-model="extras.revelacion" :disabled="isLocked">
+            <option value="">— elige una selección —</option>
+            <template x-for="t in allTeams" :key="'rv'+t"><option :value="t" x-text="flag(t)+' '+es(t)"></option></template>
+          </select>
+        </div>
+        <div class="extra-card">
+          <label>💀 Selección decepción <span class="pp" x-text="'+'+settings.decepcion"></span></label>
+          <select x-model="extras.decepcion" :disabled="isLocked">
+            <option value="">— elige una selección —</option>
+            <template x-for="t in allTeams" :key="'dc'+t"><option :value="t" x-text="flag(t)+' '+es(t)"></option></template>
+          </select>
+        </div>
+        <div class="extra-card">
+          <label>⚽ Máximo goleador (Bota de Oro) <span class="pp" x-text="'+'+settings.pichichi"></span></label>
+          <input x-model="extras.pichichi" :disabled="isLocked" placeholder="Ej: Kylian Mbappé" />
+        </div>
+        <div class="extra-card">
+          <label>🅰️ Máximo asistente <span class="pp" x-text="'+'+settings.asistente"></span></label>
+          <input x-model="extras.asistente" :disabled="isLocked" placeholder="Ej: Lionel Messi" />
+        </div>
+      </div>
+      <div class="sidebets">
+        <h4>🎲 Predicciones «sí o no»</h4>
+        <template x-for="sb in sideBets" :key="sb.key">
+          <div class="sidebet">
+            <span class="sb-q"><span x-text="sb.emoji"></span> <span x-text="sb.q"></span> <span class="pp" x-text="'+'+settings[sb.key]"></span></span>
+            <div class="sb-opts">
+              <button :class="{on: extras.sidebets[sb.key]==='si'}" @click="toggleSideBet(sb.key,'si')" :disabled="isLocked">Sí</button>
+              <button :class="{on: extras.sidebets[sb.key]==='no'}" @click="toggleSideBet(sb.key,'no')" :disabled="isLocked">No</button>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="step-nav">
+        <button class="btn ghost" @click="goHub()">← Mi porra</button>
+        <button class="btn gold big" @click="finishPorra()" :disabled="busy || isLocked">💾 Guardar y volver al resumen</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===================== CLASIFICACIÓN ===================== -->
+  <section x-show="view==='pool' && tab==='leaderboard'" class="board">
+    <div class="step-head">
+      <h2>🏆 Clasificación</h2>
+      <p class="muted">La liga de la familia. <span x-show="probBusy">⏳ calculando probabilidades…</span></p>
+    </div>
+
+    <!-- Cómo se puntúa (siempre visible) -->
+    <details class="scoring-explain">
+      <summary>📋 ¿Cómo se puntúa? — el modelo de la porra</summary>
+      <div class="se-body">
+        <p><b>Tu pronóstico:</b> el orden de los 12 grupos, los 8 mejores terceros y el cuadro hasta el campeón. Sumas puntos por cada acierto, y cuanto más lejos llega tu equipo, más puntos.</p>
+        <div class="se-grid">
+          <div class="se-card">
+            <h4>📊 Fase de grupos <small>(en cada grupo)</small></h4>
+            <ul>
+              <li>Acertar el <b>1º</b> <span class="pp" x-text="'+'+settings.g1"></span></li>
+              <li>Acertar el <b>2º</b> <span class="pp" x-text="'+'+settings.g2"></span></li>
+              <li>Acertar el <b>3º</b> <span class="pp" x-text="'+'+settings.g3"></span></li>
+              <li>Equipo que <b>clasifica</b> (top 2), aunque falles el orden <span class="pp" x-text="'+'+settings.qual"></span></li>
+            </ul>
+          </div>
+          <div class="se-card">
+            <h4>🥉 Mejores terceros</h4>
+            <ul><li>Por cada tercero tuyo que <b>clasifica</b> <span class="pp" x-text="'+'+settings.thirdQual"></span></li></ul>
+            <h4>🏆 Eliminatorias <small>(por cada equipo que llega)</small></h4>
+            <ul>
+              <li>Llega a <b>octavos</b> <span class="pp" x-text="'+'+settings.octavos"></span></li>
+              <li>Llega a <b>cuartos</b> <span class="pp" x-text="'+'+settings.cuartos"></span></li>
+              <li>Llega a <b>semifinal</b> <span class="pp" x-text="'+'+settings.semis"></span></li>
+              <li>Llega a la <b>final</b> <span class="pp" x-text="'+'+settings.finalists"></span></li>
+              <li>Acierta el <b>campeón</b> <span class="pp" x-text="'+'+settings.champion"></span></li>
+            </ul>
+          </div>
+        </div>
+        <p class="tiny muted">El organizador puede ajustar estos valores en Admin → Puntuación. Los puntos se recalculan solos según se juegan los partidos.</p>
+      </div>
+    </details>
+
+    <!-- Barra de estado -->
+    <div class="live-bar">
+      <span class="live-dot" :class="{on: liveMatches.some(m=>m.live)}"></span>
+      <span x-show="liveMatches.some(m=>m.live)"><b>EN DIRECTO</b> · </span>
+      <span x-text="boardLocked ? playedTxt : 'Probabilidad según tu predicción'"></span>
+      <span class="muted tiny" x-show="lastProb"> · <span x-text="simN.toLocaleString('es')"></span> simulaciones</span>
+      <button class="btn mini ghost" @click="loadBoard()" :disabled="probBusy"><span x-show="!probBusy">↻ actualizar</span><span x-show="probBusy">…</span></button>
+    </div>
+
+    <!-- Podio -->
+    <template x-if="ranked.length>=2">
+      <div class="podium">
+        <template x-for="(e,i) in ranked.slice(0,3)" :key="'pod'+e.id">
+          <div class="pod" :class="['p'+(i+1), {bot:(e.first_name||'').startsWith('🤖')}]">
+            <div class="pod-medal" x-text="['🥇','🥈','🥉'][i]"></div>
+            <div class="pod-name" x-text="e.first_name"></div>
+            <div class="pod-win" x-text="pct(e.win)+' 🏆'"></div>
+            <div class="pod-pts" x-text="boardLocked ? (e.points+' pts') : 'de ganar'"></div>
+          </div>
+        </template>
+      </div>
+    </template>
+
+    <!-- Tabla de liga -->
+    <div class="league" x-show="ranked.length">
+      <div class="league-head">
+        <span class="lr-pos">#</span>
+        <span class="lr-name">Jugador</span>
+        <span class="lr-num" x-show="boardLocked">Pts</span>
+        <span class="lr-win"><span class="lr-winval">🏆 Ganar</span></span>
+      </div>
+      <template x-for="(e,i) in ranked" :key="e.id">
+        <div class="league-row clickrow" :class="{me:e.id===me.id, bot:(e.first_name||'').startsWith('🤖'), sel:selectedId===e.id, pos1:i===0, pos2:i===1, pos3:i===2}" @click="toggleDetail(e.id)">
+          <span class="lr-pos" x-text="i+1"></span>
+          <span class="lr-name"><span x-text="e.first_name+' '+e.last_name"></span><span class="incompleto" x-show="e.complete===false">⚠️ sin terminar</span><span class="youtag" x-show="e.id===me.id">tú</span><span class="seehint" x-show="canViewPicks">👁️</span></span>
+          <span class="lr-num" x-show="boardLocked"><b x-text="e.points"></b></span>
+          <span class="lr-win"><span class="lr-winbar" :style="'width:'+Math.min(100,(e.win||0)*100)+'%'"></span><span class="lr-winval" x-text="pct(e.win)"></span></span>
+        </div>
+      </template>
+    </div>
+    <p class="incomplete-note" x-show="boardIncomplete>0"><span>⚠️</span> <b x-text="boardIncomplete"></b> <span x-text="boardIncomplete===1?'jugador no ha terminado':'jugadores no han terminado'"></span> su porra<span x-show="!boardLocked"> — aún están a tiempo hasta el cierre</span>.</p>
+    <p class="muted" x-show="!ranked.length && !probBusy" style="text-align:center;padding:16px">Aún no hay quinielas para calcular la clasificación.</p>
+    <p class="tiny muted" x-show="!boardLocked && ranked.length">🔒 Las quinielas no se ven hasta que empiece el Mundial (para que nadie copie). Mientras, ves la <b>probabilidad de ganar la porra</b> de cada uno según lo acertada que sea su predicción (simulación del torneo con la fuerza de cada selección). <span x-show="lockCountdown">⏳ Empieza en <b x-text="lockCountdown"></b>.</span></p>
+    <p class="tiny muted" x-show="boardLocked && ranked.length">👁️ Toca a un jugador para ver su quiniela y el desglose. «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del resto del Mundial.</p>
+
+    <!-- DETALLE: quiniela de un participante -->
+    <template x-if="det">
+      <div class="detail card">
+        <div class="detail-head">
+          <h3 x-text="'🔎 Quiniela de '+det.name"></h3>
+          <button class="btn mini ghost" @click="selectedId=null">✕ cerrar</button>
+        </div>
+        <template x-if="isLocked">
+          <div class="bd-chips">
+            <span class="bd-total" x-text="det.total+' pts'"></span>
+            <span x-text="'⚽ Marcadores '+det.bd.marcadores"></span>
+            <span x-text="'Grupos '+det.bd.grupos"></span>
+            <span x-text="'Terceros '+det.bd.terceros"></span>
+            <span x-text="'Octavos '+det.bd.octavos"></span>
+            <span x-text="'Cuartos '+det.bd.cuartos"></span>
+            <span x-text="'Semis '+det.bd.semis"></span>
+            <span x-text="'Final '+det.bd.final"></span>
+            <span x-text="'Campeón '+det.bd.campeon"></span>
+            <span class="bd-extra" x-show="det.ex.total" x-text="'⭐ Especiales '+det.ex.total"></span>
+          </div>
+        </template>
+
+        <div class="qv">
+          <div class="qv-champ">
+            <small>Su campeón</small>
+            <div class="qv-champ-team"><span class="flag big" x-text="det.champion?flag(det.champion):'🏆'"></span><b x-text="det.champion?es(det.champion):'—'"></b></div>
+          </div>
+          <div class="qv-row"><b>Finalistas:</b> <template x-for="t in det.finalists" :key="'f'+t"><span class="qchip"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template><span class="muted tiny" x-show="!det.finalists.length">(sin completar)</span></div>
+          <div class="qv-row"><b>Semifinalistas:</b> <template x-for="t in det.semis" :key="'s'+t"><span class="qchip"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+          <div class="qv-row"><b>Cuartos:</b> <template x-for="t in det.cuartos" :key="'c'+t"><span class="qchip sm"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+          <div class="qv-row" x-show="det.extras && (det.extras.revelacion||det.extras.decepcion||det.extras.pichichi||det.extras.asistente||(det.extras.sidebets&&(det.extras.sidebets.hattrick||det.extras.sidebets.dobleRoja)))">
+            <b>⭐ Especiales:</b>
+            <span class="qchip sm" x-show="det.extras.revelacion">✨ <span x-text="es(det.extras.revelacion)"></span></span>
+            <span class="qchip sm" x-show="det.extras.decepcion">💀 <span x-text="es(det.extras.decepcion)"></span></span>
+            <span class="qchip sm" x-show="det.extras.pichichi">⚽ <span x-text="det.extras.pichichi"></span></span>
+            <span class="qchip sm" x-show="det.extras.asistente">🅰️ <span x-text="det.extras.asistente"></span></span>
+            <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.hattrick" x-text="'Hat-trick: '+(det.extras.sidebets?det.extras.sidebets.hattrick:'')"></span>
+            <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.dobleRoja" x-text="'Doble roja: '+(det.extras.sidebets?det.extras.sidebets.dobleRoja:'')"></span>
+          </div>
+          <details class="qv-more">
+            <summary>Ver octavos, terceros y grupos</summary>
+            <div class="qv-row"><b>Octavos:</b> <template x-for="t in det.octavos" :key="'o'+t"><span class="qchip sm"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+            <div class="qv-row"><b>8 mejores terceros:</b> <template x-for="t in det.thirds" :key="'th'+t"><span class="qchip sm third"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+            <div class="qv-groups">
+              <template x-for="L in letters" :key="'qg'+L">
+                <div class="qv-group"><b x-text="'Grupo '+L+':'"></b>
+                  <template x-for="(t,idx) in (det.groups[L]||[])" :key="'qg'+L+t">
+                    <span class="qv-gteam" :class="rankClass(idx)" x-text="(idx+1)+'. '+es(t)"></span>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </details>
+        </div>
+      </div>
+    </template>
+  </section>
+
+  <!-- ===================== RESULTADOS / CALENDARIO ===================== -->
+  <section x-show="view==='pool' && tab==='results'" class="results">
+    <div class="step-head"><h2>Resultados y calendario</h2>
+      <p class="muted">Marcadores oficiales del Mundial 2026 en directo. <span x-text="playedTxt"></span></p>
+    </div>
+    <div class="live-bar">
+      <span class="live-dot" :class="{on: liveMatches.some(m=>m.live)}"></span>
+      <span x-show="liveMatches.some(m=>m.live)"><b>EN DIRECTO</b> · </span>
+      <span class="muted" x-text="espnAt ? ('Datos de ESPN '+liveAgo) : 'Cargando datos en vivo…'"></span>
+      <button class="btn mini ghost" @click="fetchEspn(true)" :disabled="liveBusy"><span x-show="!liveBusy">↻ actualizar</span><span x-show="liveBusy">…</span></button>
+    </div>
+    <div class="livestrip" x-show="liveToday.length">
+      <template x-for="m in liveToday" :key="'lm'+m.id">
+        <div class="lcard" :class="{live:m.live, done:m.done}">
+          <span class="lc-badge" x-text="m.live?'🔴 EN VIVO':(m.done?'FINAL':(m.dayShort+' · '+m.time))"></span>
+          <div class="lc-team"><span class="flag" x-text="m.hFlag"></span><span x-text="m.hName"></span></div>
+          <div class="lc-score" x-text="m.pre ? 'vs' : (m.hs+' - '+m.as)"></div>
+          <div class="lc-team"><span class="flag" x-text="m.aFlag"></span><span x-text="m.aName"></span></div>
+        </div>
+      </template>
+    </div>
+    <!-- 🔴 EN DIRECTO: lo que pusisteis para el grupo que se está jugando -->
+    <div class="live-groups" x-show="liveGroups.length">
+      <template x-for="g in liveGroups" :key="'lg'+g.letter">
+        <div class="lg-card">
+          <div class="lg-head">
+            <span class="lg-live">🔴 EN DIRECTO</span>
+            <span class="lg-g">Grupo <span x-text="g.letter"></span></span>
+            <span class="lg-score"><span class="flag" x-text="g.match.hFlag"></span> <b x-text="g.match.hs+'–'+g.match.as"></b> <span class="flag" x-text="g.match.aFlag"></span></span>
+          </div>
+          <div class="lg-sub">📋 Lo que pusisteis para el <b>Grupo <span x-text="g.letter"></span></b> (resaltados, los que juegan ahora):</div>
+          <div class="lg-preds">
+            <template x-for="pr in groupPredictions(g.letter)" :key="'gp'+g.letter+pr.id">
+              <div class="lg-row" :class="{me:pr.me, bot:pr.bot}">
+                <span class="lg-name"><span x-text="pr.name"></span><span class="youtag" x-show="pr.me">tú</span></span>
+                <span class="lg-order">
+                  <template x-for="(t,idx) in pr.order" :key="'o'+g.letter+pr.id+idx">
+                    <span class="lg-pos" :class="{playing: t===g.match.hCanon || t===g.match.aCanon}"><b x-text="(idx+1)+'º'"></b><span class="flag" x-text="flag(t)"></span></span>
+                  </template>
+                </span>
+              </div>
+            </template>
+            <p class="muted tiny" x-show="!groupPredictions(g.letter).length">Las predicciones se ven cuando empieza el Mundial.</p>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <div class="subtabs">
+      <button :class="{on: rTab==='cal'}" @click="rTab='cal'">📅 Calendario</button>
+      <button :class="{on: rTab==='groups'}" @click="rTab='groups'">📊 Grupos</button>
+      <button :class="{on: rTab==='ko'}" @click="rTab='ko'">🏆 Eliminatorias</button>
+      <button :class="{on: rTab==='scorers'}" @click="rTab='scorers'">⚽ Goleadores</button>
+    </div>
+
+    <!-- Calendario: todos los partidos con hora de España (Madrid) -->
+    <div x-show="rTab==='cal'" class="rcal">
+      <p class="muted tiny">⏰ Horarios en hora de <b>España peninsular (Madrid)</b>. <span x-show="!espnAt">Cargando…</span></p>
+      <div class="cal-filter">
+        <button :class="{on:calFilter==='all'}" @click="calFilter='all'">Todos</button>
+        <button :class="{on:calFilter==='spain'}" @click="calFilter='spain'">🇪🇸 España</button>
+        <button :class="{on:calFilter==='today'}" @click="calFilter='today'">Hoy</button>
+      </div>
+      <template x-for="day in schedule" :key="'d'+day.key">
+        <div class="cal-day">
+          <div class="cal-day-h" x-text="day.label"></div>
+          <template x-for="m in day.matches" :key="'cm'+m.id">
+            <div class="cal-row" :class="{live:m.live, done:m.done}">
+              <span class="cal-time"><b x-text="m.live?'🔴':(m.done?'FIN':m.time)"></b><small class="cal-venue" x-text="m.venue" x-show="m.venue"></small></span>
+              <span class="cal-t home"><span class="tn" x-text="m.hName"></span> <span class="flag" x-text="m.hFlag"></span></span>
+              <span class="cal-sc" x-text="m.pre ? 'vs' : (m.hs+' - '+m.as)"></span>
+              <span class="cal-t away"><span class="flag" x-text="m.aFlag"></span> <span class="tn" x-text="m.aName"></span></span>
+            </div>
+          </template>
+        </div>
+      </template>
+      <p class="muted" x-show="!schedule.length" x-text="espnAt ? (calFilter==='today' ? 'No hay partidos hoy.' : (calFilter==='spain' ? 'No hay partidos de España con este filtro.' : 'No hay partidos.')) : 'Cargando el calendario en vivo…'"></p>
+    </div>
+
+    <!-- 📊 GRUPOS: tabla en vivo + prob. de clasificar + lo que pusisteis -->
+    <div x-show="rTab==='groups'" class="rgroups2">
+      <p class="muted tiny">Tabla en vivo + <b>probabilidad de clasificar</b> de cada selección (simulación del resto de la fase) + lo que predijo cada uno. <span x-show="teamProbsSims">· <b x-text="teamProbsSims.toLocaleString('es')"></b> simulaciones</span></p>
+      <template x-for="L in letters" :key="'g2'+L">
+        <div class="group-card gcard2">
+          <div class="group-title">Grupo <span x-text="L"></span></div>
+          <table class="mini grp">
+            <thead><tr><th></th><th>PJ</th><th>Pts</th><th>DG</th><th>Clasif.</th></tr></thead>
+            <tbody>
+              <template x-for="(row,i) in liveTable(L)" :key="'gr'+L+row.team">
+                <tr :class="rankClass(i)">
+                  <td class="tl"><span class="flag" x-text="flag(row.team)"></span> <span x-text="es(row.team)"></span></td>
+                  <td x-text="row.pj"></td><td><b x-text="row.pts"></b></td><td x-text="(row.gd>0?'+':'')+row.gd"></td>
+                  <td class="qcell"><span class="qbar"><i :style="'width:'+Math.round((teamQ(row.team)||0)*100)+'%'"></i></span><span class="qval" x-text="teamQ(row.team)==null?'—':pct(teamQ(row.team))"></span></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <details class="gc-det">
+            <summary>📋 Lo que pusisteis para el Grupo <span x-text="L"></span></summary>
+            <div class="lg-preds in-card">
+              <template x-for="pr in groupPredictions(L)" :key="'gp2'+L+pr.id">
+                <div class="lg-row" :class="{me:pr.me, bot:pr.bot}">
+                  <span class="lg-name"><span x-text="pr.name"></span><span class="youtag" x-show="pr.me">tú</span></span>
+                  <span class="lg-order"><template x-for="(t,idx) in pr.order" :key="'o2'+L+pr.id+idx"><span class="lg-pos"><b x-text="(idx+1)+'º'"></b><span class="flag" x-text="flag(t)"></span></span></template></span>
+                </div>
+              </template>
+              <p class="muted tiny" x-show="!groupPredictions(L).length">Las predicciones se ven cuando empiece el Mundial.</p>
+            </div>
+          </details>
+          <details class="gc-det">
+            <summary>⚽ Partidos del Grupo <span x-text="L"></span></summary>
+            <template x-for="fx in groupFixtures(L)" :key="'gf'+fx.code">
+              <div class="rmatch">
+                <span class="md">J<span x-text="fx.md"></span></span>
+                <span class="t1"><span x-text="es(fx.home)"></span> <span class="flag" x-text="flag(fx.home)"></span></span>
+                <span class="sc" x-text="scoreTxt(fx.code)"></span>
+                <span class="t2"><span class="flag" x-text="flag(fx.away)"></span> <span x-text="es(fx.away)"></span></span>
+              </div>
+            </template>
+          </details>
+        </div>
+      </template>
+    </div>
+
+    <!-- ⚽ GOLEADORES Y ASISTENTES en directo -->
+    <div x-show="rTab==='scorers'" class="rscorers">
+      <p class="muted tiny">En directo desde ESPN según se juegan los partidos.</p>
+      <div class="sc-cols">
+        <div class="sc-col">
+          <h3>⚽ Máximos goleadores</h3>
+          <template x-for="(s,i) in scorers" :key="'sc'+i">
+            <div class="sc-row"><span class="sc-pos" x-text="(i+1)"></span><span class="flag sc-fl" x-text="s.flag"></span><span class="sc-nm" x-text="s.name"></span><b class="sc-n" x-text="s.n"></b></div>
+          </template>
+          <p class="muted tiny" x-show="!scorers.length">Aún no hay goles. Aparecerán aquí en directo cuando empiece el Mundial. 🥅</p>
+        </div>
+        <div class="sc-col">
+          <h3>🅰️ Máximos asistentes</h3>
+          <template x-for="(s,i) in assisters" :key="'as'+i">
+            <div class="sc-row"><span class="sc-pos" x-text="(i+1)"></span><span class="flag sc-fl" x-text="s.flag"></span><span class="sc-nm" x-text="s.name"></span><b class="sc-n" x-text="s.n"></b></div>
+          </template>
+          <p class="muted tiny" x-show="!assisters.length">Las asistencias aparecerán según ESPN las publique durante los partidos.</p>
+        </div>
+      </div>
+    </div>
+
+    <div x-show="rTab==='ko'" class="rko">
+      <p class="muted" x-show="!koReady">El cuadro de eliminatorias se mostrará cuando termine la fase de grupos.</p>
+      <template x-if="koReady">
+        <div class="bracket-scroll"><div class="bracket">
+          <template x-for="col in liveBracketCols" :key="'lb'+col.key">
+            <div class="bcol">
+              <div class="bcol-h" x-text="col.title"></div>
+              <template x-for="m in col.matches" :key="'lbm'+m.match">
+                <div class="bmatch">
+                  <div class="bteam" :class="{sel: koWinner(m.match)===m.a}"><span class="flag" x-text="m.a?flag(m.a):''"></span><span x-text="m.a?es(m.a):'—'"></span></div>
+                  <div class="bteam" :class="{sel: koWinner(m.match)===m.b}"><span class="flag" x-text="m.b?flag(m.b):''"></span><span x-text="m.b?es(m.b):'—'"></span></div>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div></div>
+      </template>
+    </div>
+  </section>
+
+  <!-- ===================== ADMIN ===================== -->
+  <section x-show="view==='pool' && tab==='admin'" class="admin">
+    <template x-if="!adminOk">
+      <div class="card slim narrow">
+        <h2>🔐 Panel de admin</h2>
+        <p class="muted">Introduce el PIN de admin para meter resultados y gestionar la porra.</p>
+        <input type="password" x-model="adminPin" @keydown.enter="checkAdmin()" placeholder="PIN" />
+        <button class="btn primary block" @click="checkAdmin()" :disabled="busy">Entrar</button>
+      </div>
+    </template>
+
+    <template x-if="adminOk">
+      <div>
+        <!-- Gestión porra -->
+        <div class="card slim">
+          <h3>⚙️ Gestión de la porra</h3>
+          <div class="admin-row">
+            <button class="btn" :class="pool?.locked?'gold':'danger'" @click="toggleLock()" :disabled="busy"
+              x-text="pool?.locked ? '🔓 Reabrir pronósticos' : '🔒 Cerrar pronósticos (empieza el Mundial)'"></button>
+            <span class="muted tiny">La porra se <b>cierra sola 1 hora antes</b> del primer partido (jue 11 jun, 18:00 UTC · 20:00 España). Este botón es solo por si quieres cerrarla/reabrirla a mano antes.</span>
+          </div>
+          <details class="scoring">
+            <summary>Puntuación (avanzado)</summary>
+            <div class="score-grid">
+              <template x-for="k in scoreKeys" :key="k.key">
+                <label class="score-item"><span x-text="k.label"></span><input type="number" x-model.number="settings[k.key]" /></label>
+              </template>
+            </div>
+            <button class="btn primary" @click="saveSettings()" :disabled="busy">Guardar puntuación</button>
+          </details>
+        </div>
+
+        <!-- Respuestas de las especiales -->
+        <div class="card slim">
+          <h3>⭐ Respuestas de las predicciones especiales</h3>
+          <p class="muted tiny">Cuando se sepan (al final del torneo o cuando proceda), márcalas aquí. Suman puntos a quien las acertó. Déjalas «sin decidir» mientras tanto.</p>
+          <div class="extras-grid">
+            <div class="extra-card">
+              <label>✨ Revelación</label>
+              <select x-model="extrasActualEdit.revelacion"><option value="">— sin decidir —</option><template x-for="t in allTeams" :key="'arv'+t"><option :value="t" x-text="flag(t)+' '+es(t)"></option></template></select>
+            </div>
+            <div class="extra-card">
+              <label>💀 Decepción</label>
+              <select x-model="extrasActualEdit.decepcion"><option value="">— sin decidir —</option><template x-for="t in allTeams" :key="'adc'+t"><option :value="t" x-text="flag(t)+' '+es(t)"></option></template></select>
+            </div>
+            <div class="extra-card"><label>⚽ Máximo goleador</label><input x-model="extrasActualEdit.pichichi" placeholder="Nombre del jugador" /></div>
+            <div class="extra-card"><label>🅰️ Máximo asistente</label><input x-model="extrasActualEdit.asistente" placeholder="Nombre del jugador" /></div>
+          </div>
+          <div class="sidebets">
+            <template x-for="sb in sideBets" :key="'asb'+sb.key">
+              <div class="sidebet">
+                <span class="sb-q"><span x-text="sb.emoji"></span> <span x-text="sb.q"></span></span>
+                <div class="sb-opts">
+                  <button :class="{on: extrasActualEdit.sidebets[sb.key]==='si'}" @click="extrasActualEdit.sidebets[sb.key]='si'">Sí</button>
+                  <button :class="{on: extrasActualEdit.sidebets[sb.key]==='no'}" @click="extrasActualEdit.sidebets[sb.key]='no'">No</button>
+                  <button class="sb-clr" @click="extrasActualEdit.sidebets[sb.key]=''">limpiar</button>
+                </div>
+              </div>
+            </template>
+          </div>
+          <button class="btn primary" @click="saveExtrasActual()" :disabled="busy">Guardar respuestas</button>
+        </div>
+
+        <!-- Resultados -->
+        <div class="card slim">
+          <h3>🔴 Resultados en vivo</h3>
+          <p class="muted tiny">Los resultados llegan <b>solos y en directo desde ESPN</b> (no tienes que hacer nada). Abajo puedes corregir o introducir un marcador a mano si hiciera falta: tu corrección manda sobre ESPN.</p>
+          <button class="btn ghost" @click="fetchEspn(true)" :disabled="liveBusy"><span x-show="!liveBusy">↻ Actualizar desde ESPN ahora</span><span x-show="liveBusy">Actualizando…</span></button>
+          <span class="muted tiny" x-show="espnAt" x-text="'ESPN '+liveAgo"></span>
+        </div>
+
+        <div class="subtabs">
+          <button :class="{on: aTab==='groups'}" @click="aTab='groups'">Fase de grupos</button>
+          <button :class="{on: aTab==='ko'}" @click="aTab='ko'">Eliminatorias</button>
+        </div>
+
+        <!-- Resultados grupos -->
+        <div x-show="aTab==='groups'">
+          <template x-for="L in letters" :key="'ag'+L">
+            <div class="group-card">
+              <div class="group-title">Grupo <span x-text="L"></span></div>
+              <template x-for="fx in groupFixtures(L)" :key="'af'+fx.code">
+                <div class="admatch">
+                  <span class="t1"><span class="flag" x-text="flag(fx.home)"></span> <span x-text="es(fx.home)"></span></span>
+                  <input type="number" min="0" class="sc-in" x-model.number="rEdit[fx.code].h" />
+                  <span>-</span>
+                  <input type="number" min="0" class="sc-in" x-model.number="rEdit[fx.code].a" />
+                  <span class="t2"><span x-text="es(fx.away)"></span> <span class="flag" x-text="flag(fx.away)"></span></span>
+                  <button class="btn mini primary" @click="saveGroupResult(fx)" :disabled="busy">Guardar</button>
+                  <span class="saved" x-show="results[fx.code] && results[fx.code].played">✓</span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- Resultados eliminatorias -->
+        <div x-show="aTab==='ko'">
+          <p class="muted tiny" x-show="!koReady">Termina de meter la fase de grupos para autocompletar los cruces. Mientras, puedes meter equipos a mano.</p>
+          <template x-for="m in koAdminList" :key="'ak'+m.match">
+            <div class="admatch ko">
+              <span class="mno" x-text="'M'+m.match+' · '+m.round"></span>
+              <input class="team-in" list="teamlist" x-model="koEdit[m.match].home" placeholder="Local" />
+              <input type="number" min="0" class="sc-in" x-model.number="koEdit[m.match].h" />
+              <span>-</span>
+              <input type="number" min="0" class="sc-in" x-model.number="koEdit[m.match].a" />
+              <input class="team-in" list="teamlist" x-model="koEdit[m.match].away" placeholder="Visitante" />
+              <select class="win-sel" x-model="koEdit[m.match].winner">
+                <option value="">¿Quién pasa?</option>
+                <option :value="koEdit[m.match].home" x-text="koEdit[m.match].home||'Local'"></option>
+                <option :value="koEdit[m.match].away" x-text="koEdit[m.match].away||'Visitante'"></option>
+              </select>
+              <button class="btn mini primary" @click="saveKoResult(m)" :disabled="busy">Guardar</button>
+              <span class="saved" x-show="results[m.match] && results[m.match].played">✓</span>
+            </div>
+          </template>
+          <datalist id="teamlist">
+            <template x-for="t in allTeams" :key="'dl'+t"><option :value="t" x-text="es(t)"></option></template>
+          </datalist>
+        </div>
+
+        <!-- Participantes -->
+        <div class="card slim">
+          <h3 x-text="'👥 Participantes ('+entries.length+')'"></h3>
+          <div class="adm-players">
+            <template x-for="e in entries" :key="'ap'+e.id">
+              <div class="adm-player"><span x-text="e.first_name+' '+e.last_name"></span>
+                <button class="btn mini danger" @click="deleteEntry(e)">borrar</button></div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </template>
+  </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>Porra Mundial 2026 ⚽ · datos verificados (Wikipedia + ESPN) · probabilidades por simulación Monte Carlo</span>
+    <button class="foot-install" x-show="!isStandalone" @click="showInstall=true">📲 Instalar en el móvil</button>
+  </footer>
+
+  <!-- Loader global -->
+  <div class="overlay" x-show="busy" x-transition.opacity><div class="spinner"></div></div>
+
+  <!-- Tutorial: instalar en el móvil como app -->
+  <div class="modal-bg" x-show="showInstall" x-transition.opacity @click.self="closeInstall()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>📲 Pon la porra en tu móvil</h3>
+        <button class="modal-x" @click="closeInstall()">✕</button>
+      </div>
+      <p class="muted">Añádela a la pantalla de inicio y tendrás el icono <b>⚽ Porra 2026</b> como una app — sin descargar nada y sin ocupar espacio.</p>
+      <template x-if="deferredPrompt">
+        <button class="btn gold block big" @click="installApp()">⬇️ Instalar ahora</button>
+      </template>
+      <div class="ins-block" :class="{hl: isIOS}">
+        <div class="ins-h">🍎 iPhone / iPad <small>(Safari)</small></div>
+        <ol>
+          <li>Toca el botón <b>Compartir</b> (el cuadradito con la flecha ↑, abajo del todo).</li>
+          <li>Desliza y toca <b>«Añadir a pantalla de inicio»</b>.</li>
+          <li>Toca <b>«Añadir»</b> arriba a la derecha. ¡Ya tienes el icono ⚽!</li>
+        </ol>
+      </div>
+      <div class="ins-block" :class="{hl: !isIOS}">
+        <div class="ins-h">🤖 Android <small>(Chrome)</small></div>
+        <ol>
+          <li>Toca el menú <b>⋮</b> (tres puntos, arriba a la derecha).</li>
+          <li>Toca <b>«Añadir a pantalla de inicio»</b> o <b>«Instalar aplicación»</b>.</li>
+          <li>Confirma con <b>«Añadir»</b>. ¡Ya tienes el icono ⚽!</li>
+        </ol>
+      </div>
+      <p class="tiny muted">💡 ¿Abriste el enlace desde <b>WhatsApp</b>? Primero ábrelo en el navegador: toca <b>⋯</b> (o Compartir) → <b>«Abrir en Safari / Chrome»</b>, y luego sigue los pasos.</p>
+      <button class="btn ghost block" @click="closeInstall()">Entendido</button>
+    </div>
+  </div>
+
+  <!-- ====== Dependencias ====== -->
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+</body>
+</html>
