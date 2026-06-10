@@ -48,7 +48,7 @@ window.porraApp = function () {
     toasts: [], busy: false, probBusy: false, syncBusy: false, syncMsg: "",
     showInstall: false, deferredPrompt: null,
     // pronósticos
-    groups: emptyGroups(), scores: emptyScores(), derivedStandings: {}, thirds: [], bracket: {}, _cols: [], _champion: null,
+    groups: emptyGroups(), scores: emptyScores(), derivedStandings: {}, thirds: [], _thirdsTouched: false, bracket: {}, _cols: [], _champion: null,
     extras: { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} },
     letters: D.GROUP_LETTERS, allTeams: ALL_TEAMS.slice().sort((a, b) => D.es(a).localeCompare(D.es(b))),
     sideBets: D.SIDE_BETS,
@@ -314,7 +314,7 @@ window.porraApp = function () {
       try { mine = JSON.parse(localStorage.getItem("porra_me_" + code) || "null"); } catch (e) {}
       try { draft = JSON.parse(localStorage.getItem("porra_draft_" + code) || "null"); } catch (e) {}
       const src = mine || draft;
-      this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this.bracket = {};
+      this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this._thirdsTouched = false; this.bracket = {};
       this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} };
       this.me = { first: "", last: "", id: null, saved: false };
       if (mine) { this.me = { first: mine.first || "", last: mine.last || "", id: mine.id || null, saved: !!mine.id }; }
@@ -323,6 +323,7 @@ window.porraApp = function () {
         const p = src.picks || src;
         if (p.scores) for (const fx of D.GROUP_FIXTURES) if (Array.isArray(p.scores[fx.code])) this.scores[fx.code] = p.scores[fx.code].slice();
         this.thirds = (p.thirds || []).slice();
+        this._thirdsTouched = p.thirdsTouched != null ? !!p.thirdsTouched : (this.thirds.length > 0);
         this.bracket = Object.assign({}, p.bracket || {});
         if (p.extras) this.extras = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} }, p.extras, { sidebets: Object.assign({}, p.extras.sidebets || {}) });
       }
@@ -330,7 +331,7 @@ window.porraApp = function () {
     },
     persistDraft() {
       if (!this.pool) return;
-      localStorage.setItem("porra_draft_" + this.pool.code, JSON.stringify({ scores: this.scores, groups: this.groups, thirds: this.thirds, bracket: this.bracket, extras: this.extras, first: this.me.first, last: this.me.last }));
+      localStorage.setItem("porra_draft_" + this.pool.code, JSON.stringify({ scores: this.scores, groups: this.groups, thirds: this.thirds, thirdsTouched: this._thirdsTouched, bracket: this.bracket, extras: this.extras, first: this.me.first, last: this.me.last }));
     },
 
     // ---------- paso 1: grupos ----------
@@ -344,6 +345,7 @@ window.porraApp = function () {
     // ---------- paso 2: terceros ----------
     toggleThird(team) {
       if (this.isLocked) return;
+      this._thirdsTouched = true;   // el usuario ha personalizado sus terceros → respetar su selección
       const i = this.thirds.indexOf(team);
       if (i >= 0) this.thirds.splice(i, 1);
       else if (this.thirds.length < 8) this.thirds.push(team);
@@ -362,16 +364,24 @@ window.porraApp = function () {
       pair[side] = v; this.scores[code] = pair;
       this.deriveGroups(); this.persistDraft();
     },
-    // Recalcula el orden de los 12 grupos a partir de los marcadores predichos (tabla en vivo).
+    // Recalcula el orden de los 12 grupos a partir de los marcadores predichos (tabla en vivo)
+    // y mantiene los 8 terceros SIEMPRE válidos y completos cuando ya están los 72 marcadores.
     deriveGroups() {
       const r = Eng.standingsFromScores(this.scores);
       this.derivedStandings = r.standingsByGroup;
       this.groups = r.order;
-      // al completar los 72 marcadores, sugerir los 8 mejores terceros (solo si aún no se han tocado)
-      if (r.complete && r.qualifiers && this.thirds.length === 0) {
-        this.thirds = r.qualifiers.thirdsRanked.slice(0, 8).map((t) => t.team);
+      if (r.complete && r.qualifiers) {
+        const ranked = r.qualifiers.thirdsRanked.map((t) => t.team);   // los 12 terceros, ordenados (mejor primero)
+        if (!this._thirdsTouched) {
+          this.thirds = ranked.slice(0, 8);                            // sugerencia automática, siempre fresca con los marcadores
+        } else {
+          this.thirds = this.thirds.filter((t) => ranked.includes(t)); // quitar los que ya no son 3º de ningún grupo
+          for (const t of ranked) { if (this.thirds.length >= 8) break; if (!this.thirds.includes(t)) this.thirds.push(t); } // recompletar hasta 8 (nunca dejar el cuadro a medias en silencio)
+        }
+      } else {
+        this.reconcileThirds();   // incompleto: solo quitar terceros inválidos
       }
-      this.reconcileThirds(); this.rebuild();
+      this.rebuild();
     },
     derivedTable(L) { return (this.derivedStandings && this.derivedStandings[L]) || Eng.groupStandings(L, {}, false, null); },
     groupScoresFilled(L) { let n = 0; for (const fx of this.groupFixtures(L)) { const p = this.scores[fx.code]; if (p && p[0] != null && p[1] != null) n++; } return n; },
@@ -431,7 +441,7 @@ window.porraApp = function () {
       } finally { this.busy = false; }
     },
     async _doSave() {
-      const picks = { scores: this.scores, groups: this.groups, thirds: this.thirds, bracket: this.bracket, extras: this.extras };
+      const picks = { scores: this.scores, groups: this.groups, thirds: this.thirds, thirdsTouched: this._thirdsTouched, bracket: this.bracket, extras: this.extras };
       const res = await this.rpc("porra_save_entry", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last, p_picks: picks, p_participant_id: this.me.id });
       this.me.id = res.participant_id; this.me.saved = true;
       this._persistMe();
@@ -493,13 +503,14 @@ window.porraApp = function () {
       this.groups = emptyGroups(); this.scores = emptyScores();
       if (p.scores) for (const fx of D.GROUP_FIXTURES) if (Array.isArray(p.scores[fx.code])) this.scores[fx.code] = p.scores[fx.code].slice();
       this.thirds = (p.thirds || []).slice();
+      this._thirdsTouched = p.thirdsTouched != null ? !!p.thirdsTouched : (this.thirds.length > 0);
       this.bracket = Object.assign({}, p.bracket || {});
       this.extras = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} }, p.extras || {}, { sidebets: Object.assign({}, (p.extras && p.extras.sidebets) || {}) });
       this.deriveGroups();
     },
     _persistMe() {
       if (!this.pool) return;
-      const picks = { scores: this.scores, groups: this.groups, thirds: this.thirds, bracket: this.bracket, extras: this.extras };
+      const picks = { scores: this.scores, groups: this.groups, thirds: this.thirds, thirdsTouched: this._thirdsTouched, bracket: this.bracket, extras: this.extras };
       try { localStorage.setItem("porra_me_" + this.pool.code, JSON.stringify({ id: this.me.id, first: this.me.first, last: this.me.last, picks })); } catch (e) {}
     },
     // panel "Mi porra" (resumen): navegación fácil + estado
