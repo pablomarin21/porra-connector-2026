@@ -3,8 +3,8 @@
    Porra independiente con MARCADORES EXACTOS de la fase de grupos.
    ========================================================================== */
 // Proyecto Supabase propio de la porra Connector (se rellena al desplegar).
-const SUPA_URL = "__CONNECTOR_SUPABASE_URL__";
-const SUPA_KEY = "__CONNECTOR_SUPABASE_PUBLISHABLE_KEY__";
+const SUPA_URL = "https://enzbrjqdxurrwdpoezxr.supabase.co";
+const SUPA_KEY = "sb_publishable_TFWre0qvDBGKWvzc5D4Mzg_-FLySJ-w";
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 const D = window.PORRA_DATA;
 const Eng = window.PorraEngine;
@@ -257,7 +257,7 @@ window.porraApp = function () {
       if (!n.pin || n.pin.trim().length < 4) return this.toast("El PIN debe tener 4+ caracteres.", "err");
       this.busy = true;
       try {
-        await this.rpc("porra_create_pool", { p_name: n.name, p_code: n.code, p_admin_pin: n.pin });
+        await this.rpc("porra2_create_pool", { p_name: n.name, p_code: n.code, p_admin_pin: n.pin });
         this.adminPin = n.pin.trim(); this.adminOk = true;
         this.toast("¡Porra creada! 🎉 Comparte el código con tu grupo.");
         await this.loadPool(n.code);
@@ -268,7 +268,7 @@ window.porraApp = function () {
     async loadPool(code) {
       this.busy = true;
       try {
-        const pool = await this.rpc("porra_get_pool", { p_code: code });
+        const pool = await this.rpc("porra2_get_pool", { p_code: code });
         if (!pool) { this.toast(ERRORS.POOL_NOT_FOUND, "err"); return; }
         this.pool = pool;
         this.settings = Object.assign({}, D.DEFAULT_SCORING, pool.settings || {});
@@ -285,13 +285,13 @@ window.porraApp = function () {
       } catch (e) { this.toast(this.errMsg(e), "err"); } finally { this.busy = false; }
     },
     async loadExtrasActual() {
-      try { this.extrasActual = (await this.rpc("porra_get_extras", {})) || {}; } catch (e) { this.extrasActual = {}; }
+      try { this.extrasActual = (await this.rpc("porra2_get_extras", {})) || {}; } catch (e) { this.extrasActual = {}; }
       this.extrasActualEdit = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} }, this.extrasActual, { sidebets: Object.assign({}, this.extrasActual.sidebets || {}) });
     },
     async saveExtrasActual() {
       this.busy = true;
       try {
-        await this.rpc("porra_set_extras", { p_pin: this.adminPin, p_extras: this.extrasActualEdit });
+        await this.rpc("porra2_set_extras", { p_pin: this.adminPin, p_extras: this.extrasActualEdit });
         this.extrasActual = JSON.parse(JSON.stringify(this.extrasActualEdit));
         this.toast("Respuestas de las especiales guardadas.");
         this.computeLive();
@@ -431,7 +431,7 @@ window.porraApp = function () {
       } catch (e) {
         if (((e && e.raw) || "").includes("PARTICIPANT_NOT_FOUND")) {
           try {
-            const r = await this.rpc("porra_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last });
+            const r = await this.rpc("porra2_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last });
             this.me.id = r.participant_id;
             return await this._doSave();
           } catch (e2) { if (!quiet) this.toast(this.errMsg(e2), "err"); return false; }
@@ -442,7 +442,7 @@ window.porraApp = function () {
     },
     async _doSave() {
       const picks = { scores: this.scores, groups: this.groups, thirds: this.thirds, thirdsTouched: this._thirdsTouched, bracket: this.bracket, extras: this.extras };
-      const res = await this.rpc("porra_save_entry", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last, p_picks: picks, p_participant_id: this.me.id });
+      const res = await this.rpc("porra2_save_entry", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last, p_picks: picks, p_participant_id: this.me.id });
       this.me.id = res.participant_id; this.me.saved = true;
       this._persistMe();
       await this.loadEntries({ recompute: false });
@@ -465,7 +465,7 @@ window.porraApp = function () {
       if (!this.me.first.trim() || !this.me.last.trim()) return this.toast("Pon tu nombre y tu apellido.", "warn");
       this.busy = true;
       try {
-        const res = await this.rpc("porra_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last });
+        const res = await this.rpc("porra2_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last });
         this.me.id = res.participant_id; this.me.saved = true;
         if (res.claimed && res.picks && Object.keys(res.picks).length) this.applyPicks(res.picks);
         this._persistMe();
@@ -478,7 +478,7 @@ window.porraApp = function () {
       if (!this.me.first.trim() || !this.me.last.trim()) return this.toast("Pon tu nombre y tu apellido.", "warn");
       this.busy = true;
       try {
-        const res = await this.rpc("porra_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last, p_force_new: true });
+        const res = await this.rpc("porra2_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last, p_force_new: true });
         this.me.id = res.participant_id; this.me.saved = true;
         this._persistMe();
         this.chosenNew = false; this.phase = "hub";
@@ -490,7 +490,7 @@ window.porraApp = function () {
       const sel = this.confirmClaim; if (!sel) return;
       this.busy = true;
       try {
-        const res = await this.rpc("porra_claim", { p_code: this.pool.code, p_participant_id: sel.id });
+        const res = await this.rpc("porra2_claim", { p_code: this.pool.code, p_participant_id: sel.id });
         this.me.id = res.participant_id; this.me.first = res.first_name; this.me.last = res.last_name; this.me.saved = true;
         if (res.picks && Object.keys(res.picks).length) this.applyPicks(res.picks);
         this._persistMe();
@@ -549,7 +549,7 @@ window.porraApp = function () {
 
     // ---------- cargar resultados / participantes ----------
     async loadResults() {
-      const rows = await this.rpc("porra_get_results", {});
+      const rows = await this.rpc("porra2_get_results", {});
       const map = {}; (rows || []).forEach((r) => { map[r.match_code] = r; });
       this.results = map;
       // rEdit (grupos)
@@ -569,10 +569,10 @@ window.porraApp = function () {
     async loadEntries(opts) {
       let entries;
       if (this.adminOk && this.adminPin) {
-        try { const r = await this.rpc("porra_list_entries_admin", { p_code: this.pool.code, p_pin: this.adminPin }); entries = r.entries; }
-        catch (e) { const res = await this.rpc("porra_list_entries", { p_code: this.pool.code }); entries = res.entries; }
+        try { const r = await this.rpc("porra2_list_entries_admin", { p_code: this.pool.code, p_pin: this.adminPin }); entries = r.entries; }
+        catch (e) { const res = await this.rpc("porra2_list_entries", { p_code: this.pool.code }); entries = res.entries; }
       } else {
-        const res = await this.rpc("porra_list_entries", { p_code: this.pool.code }); entries = res.entries;
+        const res = await this.rpc("porra2_list_entries", { p_code: this.pool.code }); entries = res.entries;
       }
       this.entries = entries || [];
       this.entriesLoaded = true;
@@ -638,7 +638,7 @@ window.porraApp = function () {
       this.probBusy = true;
       let ok = false;
       try {
-        const { data, error } = await sb.functions.invoke("porra-prob", { body: { code: this.pool.code } });
+        const { data, error } = await sb.functions.invoke("porra-prob-connector", { body: { code: this.pool.code } });
         if (!error && data && !data.error && Array.isArray(data.rows)) {
           this.usingServerBoard = true;
           this.boardLocked = !!data.locked;
@@ -692,21 +692,21 @@ window.porraApp = function () {
     async checkAdmin() {
       if (!this.adminPin) return;
       this.busy = true;
-      try { const ok = await this.rpc("porra_check_master", { p_pin: this.adminPin }); if (ok) { this.adminOk = true; this.toast("🔓 Acceso admin concedido."); } else this.toast(ERRORS.BAD_PIN, "err"); }
+      try { const ok = await this.rpc("porra2_check_master", { p_pin: this.adminPin }); if (ok) { this.adminOk = true; this.toast("🔓 Acceso admin concedido."); } else this.toast(ERRORS.BAD_PIN, "err"); }
       catch (e) { this.toast(this.errMsg(e), "err"); } finally { this.busy = false; }
     },
     async toggleLock() {
       this.busy = true;
       try {
-        await this.rpc("porra_lock_pool", { p_code: this.pool.code, p_pin: this.adminPin, p_locked: !this.pool.locked, p_lock_at: null });
-        const pool = await this.rpc("porra_get_pool", { p_code: this.pool.code }); this.pool = pool;
+        await this.rpc("porra2_lock_pool", { p_code: this.pool.code, p_pin: this.adminPin, p_locked: !this.pool.locked, p_lock_at: null });
+        const pool = await this.rpc("porra2_get_pool", { p_code: this.pool.code }); this.pool = pool;
         this.toast(pool.locked ? "🔒 Porra cerrada. ¡Que empiece el Mundial!" : "🔓 Porra reabierta.");
         await this.loadEntries();
       } catch (e) { this.toast(this.errMsg(e), "err"); } finally { this.busy = false; }
     },
     async saveSettings() {
       this.busy = true;
-      try { await this.rpc("porra_set_settings", { p_code: this.pool.code, p_pin: this.adminPin, p_settings: this.settings }); this.pool.settings = Object.assign({}, this.settings); this.toast("Puntuación guardada."); this.recomputeRanking(); }
+      try { await this.rpc("porra2_set_settings", { p_code: this.pool.code, p_pin: this.adminPin, p_settings: this.settings }); this.pool.settings = Object.assign({}, this.settings); this.toast("Puntuación guardada."); this.recomputeRanking(); }
       catch (e) { this.toast(this.errMsg(e), "err"); } finally { this.busy = false; }
     },
     async saveGroupResult(fx) {
@@ -714,7 +714,7 @@ window.porraApp = function () {
       if (e.h == null || e.a == null || e.h === "" || e.a === "") return this.toast("Pon el marcador completo.", "warn");
       this.busy = true;
       try {
-        await this.rpc("porra_set_result", { p_pin: this.adminPin, p_match_code: fx.code, p_stage: "group", p_home_team: fx.home, p_away_team: fx.away, p_home_score: Number(e.h), p_away_score: Number(e.a), p_winner: null, p_played: true });
+        await this.rpc("porra2_set_result", { p_pin: this.adminPin, p_match_code: fx.code, p_stage: "group", p_home_team: fx.home, p_away_team: fx.away, p_home_score: Number(e.h), p_away_score: Number(e.a), p_winner: null, p_played: true });
         this.toast(`Guardado: ${D.es(fx.home)} ${e.h}-${e.a} ${D.es(fx.away)}`);
         await this.loadResults();
       } catch (er) { this.toast(this.errMsg(er), "err"); } finally { this.busy = false; }
@@ -725,7 +725,7 @@ window.porraApp = function () {
       if (!e.winner) return this.toast("Indica quién pasa de ronda.", "warn");
       this.busy = true;
       try {
-        await this.rpc("porra_set_result", { p_pin: this.adminPin, p_match_code: String(m.match), p_stage: m.stageKey, p_home_team: e.home, p_away_team: e.away, p_home_score: e.h == null || e.h === "" ? null : Number(e.h), p_away_score: e.a == null || e.a === "" ? null : Number(e.a), p_winner: e.winner, p_played: true });
+        await this.rpc("porra2_set_result", { p_pin: this.adminPin, p_match_code: String(m.match), p_stage: m.stageKey, p_home_team: e.home, p_away_team: e.away, p_home_score: e.h == null || e.h === "" ? null : Number(e.h), p_away_score: e.a == null || e.a === "" ? null : Number(e.a), p_winner: e.winner, p_played: true });
         this.toast(`M${m.match} guardado · pasa ${D.es(e.winner)}`);
         await this.loadResults();
       } catch (er) { this.toast(this.errMsg(er), "err"); } finally { this.busy = false; }
@@ -733,13 +733,13 @@ window.porraApp = function () {
     async deleteEntry(e) {
       if (!confirm(`¿Borrar la quiniela de ${e.first_name} ${e.last_name}?`)) return;
       this.busy = true;
-      try { await this.rpc("porra_delete_entry", { p_code: this.pool.code, p_pin: this.adminPin, p_participant_id: e.id }); this.toast("Quiniela borrada."); await this.loadEntries(); }
+      try { await this.rpc("porra2_delete_entry", { p_code: this.pool.code, p_pin: this.adminPin, p_participant_id: e.id }); this.toast("Quiniela borrada."); await this.loadEntries(); }
       catch (er) { this.toast(this.errMsg(er), "err"); } finally { this.busy = false; }
     },
     async autoSync() {
       this.syncBusy = true; this.syncMsg = "";
       try {
-        const { data, error } = await sb.functions.invoke("porra-sync", { body: { pin: this.adminPin } });
+        const { data, error } = await sb.functions.invoke("porra-sync-connector", { body: { pin: this.adminPin } });
         if (error) throw error;
         this.syncMsg = (data && data.message) || "Sincronizado.";
         await this.loadResults();
