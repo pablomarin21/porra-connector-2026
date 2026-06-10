@@ -5,6 +5,7 @@
 // Proyecto Supabase propio de la porra Connector (se rellena al desplegar).
 const SUPA_URL = "https://enzbrjqdxurrwdpoezxr.supabase.co";
 const SUPA_KEY = "sb_publishable_TFWre0qvDBGKWvzc5D4Mzg_-FLySJ-w";
+const DEFAULT_POOL = "CONNECTOR";   // el enlace carga sola esta porra: el usuario solo pone nombre+apellido
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 const D = window.PORRA_DATA;
 const Eng = window.PorraEngine;
@@ -164,11 +165,10 @@ window.porraApp = function () {
       setInterval(() => { this.nowTs = Date.now(); }, 20000);
       window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); this.deferredPrompt = e; });
       window.addEventListener("appinstalled", () => { this.deferredPrompt = null; this.showInstall = false; });
-      // Mostrar el tutorial de instalación una sola vez (primera visita, si no es ya una app)
-      try { if (!this.isStandalone && !localStorage.getItem("porra_install_seen")) setTimeout(() => { if (!this.isStandalone) this.showInstall = true; }, 1800); } catch (e) {}
       this._espnTimer = setInterval(() => { if (!this.pool) return; if (this.tab === "leaderboard") this.loadBoard(); else if (this.tab === "results") this.fetchEspn(false); }, 60000);
+      // El enlace carga directamente la porra Connector → el usuario solo pone nombre + apellido.
       const code = new URLSearchParams(location.search).get("porra");
-      if (code) await this.loadPool(code);
+      await this.loadPool(code || DEFAULT_POOL);
     },
 
     // ---------- cierre automático ----------
