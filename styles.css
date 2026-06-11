@@ -150,6 +150,15 @@ input:focus,select:focus{outline:none;border-color:var(--green2)}
 .champ-box{display:flex;flex-direction:column;align-items:center;gap:7px;background:linear-gradient(140deg,#fff7e3,#fff);border:2px dashed var(--gold);border-radius:15px;padding:20px 14px;font-weight:800;color:var(--green);font-size:1.05rem;text-align:center;margin-top:3px}
 .champ-box.set{border-style:solid;box-shadow:0 0 0 4px rgba(245,197,66,.18)}
 .champ-box .flag.big{font-size:2.4rem}
+/* cuadro de RESULTADOS en vivo (solo lectura, Resultados→Eliminatorias): vertical compacto */
+.bracket{display:flex;flex-direction:column;gap:16px;min-width:0}
+.bracket .bcol{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;min-width:0}
+.bracket .bcol-h{flex:0 0 100%;font-weight:900;color:#fff;font-size:.84rem;text-transform:uppercase;letter-spacing:.6px;text-align:center;background:linear-gradient(120deg,var(--green),var(--green2));border-radius:9px;padding:7px 12px;box-shadow:0 5px 14px rgba(0,0,0,.22);margin-bottom:2px}
+.bracket .bcol:not(:last-child)::after{content:"⬇";flex:0 0 100%;text-align:center;color:var(--green2);font-size:.8rem;opacity:.6;margin-top:2px}
+.bracket .bmatch{flex:1 1 calc(50% - 5px);min-width:148px;max-width:250px;padding:5px;gap:4px}
+.bracket .bteam{padding:8px 9px;font-size:.84rem;font-weight:600}
+.bracket .bteam .flag{font-size:1.05rem}
+.bracket .bteam.sel::after{content:""}
 
 /* ===== Review ===== */
 .review{background:#fbfdfc;border:1px solid var(--line);border-radius:12px;padding:14px}
