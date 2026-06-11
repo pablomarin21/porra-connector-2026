@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=17" />
+  <link rel="stylesheet" href="styles.css?v=18" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -27,8 +27,9 @@
       <button class="install-btn" x-show="!isStandalone" @click="showInstall=true" title="Añadir al móvil como app">📲 Instalar</button>
       <template x-if="pool">
         <nav class="tabs">
-          <button :class="{active: tab==='play'}" @click="tab='play'">Mi quiniela</button>
           <button :class="{active: tab==='leaderboard'}" @click="openLeaderboard()">Clasificación</button>
+          <button :class="{active: tab==='quinielas'}" @click="openQuinielas()">Quinielas</button>
+          <button :class="{active: tab==='play'}" @click="tab='play'">Mi Porra</button>
           <button :class="{active: tab==='results'}" @click="openResults()">Resultados</button>
           <button :class="{active: tab==='admin'}" @click="tab='admin'">Admin</button>
         </nav>
@@ -556,7 +557,7 @@
     </div>
     <p class="incomplete-note" x-show="boardIncomplete>0"><span>⚠️</span> <b x-text="boardIncomplete"></b> <span x-text="boardIncomplete===1?'jugador no ha terminado':'jugadores no han terminado'"></span> su porra<span x-show="!boardLocked"> — aún están a tiempo hasta el cierre</span>.</p>
     <p class="muted" x-show="!ranked.length && !probBusy" style="text-align:center;padding:16px">Aún no hay quinielas para calcular la clasificación.</p>
-    <p class="tiny muted" x-show="!boardLocked && ranked.length">🔒 Las quinielas no se ven hasta que empiece el Mundial (para que nadie copie). Mientras, ves la <b>probabilidad de ganar la porra</b> de cada uno según lo acertada que sea su predicción (simulación del torneo con la fuerza de cada selección). <span x-show="lockCountdown">⏳ Empieza en <b x-text="lockCountdown"></b>.</span></p>
+    <p class="tiny muted" x-show="!boardLocked && ranked.length">👁️ Toca a un jugador para ver su <b>quiniela completa</b> (o entra en la pestaña <b>Quinielas</b>). «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del Mundial con la fuerza de cada selección. <span x-show="lockCountdown">⏳ Cierra en <b x-text="lockCountdown"></b>.</span></p>
     <p class="tiny muted" x-show="boardLocked && ranked.length">👁️ Toca a un jugador para ver su quiniela y el desglose. «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del resto del Mundial.</p>
 
     <!-- DETALLE: quiniela de un participante -->
@@ -565,6 +566,11 @@
         <div class="detail-head">
           <h3 x-text="'🔎 Quiniela de '+det.name"></h3>
           <button class="btn mini ghost" @click="selectedId=null">✕ cerrar</button>
+        </div>
+        <div class="det-live" x-show="detRank">
+          <span class="dl-win">🏆 <b x-text="pct(detRank?detRank.win:0)"></b> ganar</span>
+          <span class="dl-pod" x-show="detRank && detRank.podium!=null">🥉 <b x-text="pct(detRank?detRank.podium:0)"></b> podio</span>
+          <span class="dl-pts" x-show="boardLocked && detRank"><b x-text="detRank?detRank.points:0"></b> pts ahora</span>
         </div>
         <template x-if="isLocked">
           <div class="bd-chips">
@@ -606,6 +612,93 @@
               <template x-for="L in letters" :key="'qg'+L">
                 <div class="qv-group"><b x-text="'Grupo '+L+':'"></b>
                   <template x-for="(t,idx) in (det.groups[L]||[])" :key="'qg'+L+t">
+                    <span class="qv-gteam" :class="rankClass(idx)" x-text="(idx+1)+'. '+es(t)"></span>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </details>
+        </div>
+      </div>
+    </template>
+  </section>
+
+  <!-- ===================== QUINIELAS (ver la de todos) ===================== -->
+  <section x-show="view==='pool' && tab==='quinielas'" class="quinielas">
+    <div class="step-head">
+      <h2>👀 Quinielas</h2>
+      <p class="muted">La porra completa de cada participante. Toca a alguien para verla entera.</p>
+    </div>
+    <div class="qgrid" x-show="quinielaCards.length">
+      <template x-for="c in quinielaCards" :key="'qc'+c.id">
+        <button class="qcard" :class="{me:c.isMe, sel:selectedId===c.id, bot:(c.first_name||'').startsWith('🤖')}" @click="toggleDetail(c.id)">
+          <div class="qcard-l">
+            <span class="qcard-name" x-text="c.name"></span>
+            <span class="youtag" x-show="c.isMe">tú</span>
+            <span class="incompleto" x-show="!c.complete">⚠️ sin terminar</span>
+          </div>
+          <div class="qcard-r">
+            <template x-if="c.champion">
+              <span class="qcard-champ" title="Su campeón"><span class="flag" x-text="flag(c.champion)"></span><span x-text="es(c.champion)"></span> 🏆</span>
+            </template>
+            <span class="qcard-arrow" x-text="selectedId===c.id?'▲':'▼'"></span>
+          </div>
+        </button>
+      </template>
+    </div>
+    <p class="muted" x-show="!quinielaCards.length" style="text-align:center;padding:16px">Aún no hay quinielas guardadas.</p>
+
+    <!-- DETALLE: quiniela completa (mismo bloque que en Clasificación) -->
+    <template x-if="det">
+      <div class="detail card">
+        <div class="detail-head">
+          <h3 x-text="'🔎 Quiniela de '+det.name"></h3>
+          <button class="btn mini ghost" @click="selectedId=null">✕ cerrar</button>
+        </div>
+        <div class="det-live" x-show="detRank">
+          <span class="dl-win">🏆 <b x-text="pct(detRank?detRank.win:0)"></b> ganar</span>
+          <span class="dl-pod" x-show="detRank && detRank.podium!=null">🥉 <b x-text="pct(detRank?detRank.podium:0)"></b> podio</span>
+          <span class="dl-pts" x-show="boardLocked && detRank"><b x-text="detRank?detRank.points:0"></b> pts ahora</span>
+        </div>
+        <template x-if="boardLocked">
+          <div class="bd-chips">
+            <span class="bd-total" x-text="det.total+' pts'"></span>
+            <span x-text="'⚽ Marcadores '+det.bd.marcadores"></span>
+            <span x-text="'Grupos '+det.bd.grupos"></span>
+            <span x-text="'Terceros '+det.bd.terceros"></span>
+            <span x-text="'Octavos '+det.bd.octavos"></span>
+            <span x-text="'Cuartos '+det.bd.cuartos"></span>
+            <span x-text="'Semis '+det.bd.semis"></span>
+            <span x-text="'Final '+det.bd.final"></span>
+            <span x-text="'Campeón '+det.bd.campeon"></span>
+            <span class="bd-extra" x-show="det.ex.total" x-text="'⭐ Especiales '+det.ex.total"></span>
+          </div>
+        </template>
+        <div class="qv">
+          <div class="qv-champ">
+            <small>Su campeón</small>
+            <div class="qv-champ-team"><span class="flag big" x-text="det.champion?flag(det.champion):'🏆'"></span><b x-text="det.champion?es(det.champion):'—'"></b></div>
+          </div>
+          <div class="qv-row"><b>Finalistas:</b> <template x-for="t in det.finalists" :key="'qf'+t"><span class="qchip"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template><span class="muted tiny" x-show="!det.finalists.length">(sin completar)</span></div>
+          <div class="qv-row"><b>Semifinalistas:</b> <template x-for="t in det.semis" :key="'qs'+t"><span class="qchip"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+          <div class="qv-row"><b>Cuartos:</b> <template x-for="t in det.cuartos" :key="'qc2'+t"><span class="qchip sm"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+          <div class="qv-row" x-show="det.extras && (det.extras.revelacion||det.extras.decepcion||det.extras.pichichi||det.extras.asistente||(det.extras.sidebets&&(det.extras.sidebets.hattrick||det.extras.sidebets.dobleRoja)))">
+            <b>⭐ Especiales:</b>
+            <span class="qchip sm" x-show="det.extras.revelacion">✨ <span x-text="es(det.extras.revelacion)"></span></span>
+            <span class="qchip sm" x-show="det.extras.decepcion">💀 <span x-text="es(det.extras.decepcion)"></span></span>
+            <span class="qchip sm" x-show="det.extras.pichichi">⚽ <span x-text="det.extras.pichichi"></span></span>
+            <span class="qchip sm" x-show="det.extras.asistente">🅰️ <span x-text="det.extras.asistente"></span></span>
+            <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.hattrick" x-text="'Hat-trick: '+(det.extras.sidebets?det.extras.sidebets.hattrick:'')"></span>
+            <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.dobleRoja" x-text="'Doble roja: '+(det.extras.sidebets?det.extras.sidebets.dobleRoja:'')"></span>
+          </div>
+          <details class="qv-more">
+            <summary>Ver octavos, terceros y grupos</summary>
+            <div class="qv-row"><b>Octavos:</b> <template x-for="t in det.octavos" :key="'qo'+t"><span class="qchip sm"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+            <div class="qv-row"><b>8 mejores terceros:</b> <template x-for="t in det.thirds" :key="'qth'+t"><span class="qchip sm third"><span class="flag" x-text="flag(t)"></span><span x-text="es(t)"></span></span></template></div>
+            <div class="qv-groups">
+              <template x-for="L in letters" :key="'qqg'+L">
+                <div class="qv-group"><b x-text="'Grupo '+L+':'"></b>
+                  <template x-for="(t,idx) in (det.groups[L]||[])" :key="'qqg'+L+t">
                     <span class="qv-gteam" :class="rankClass(idx)" x-text="(idx+1)+'. '+es(t)"></span>
                   </template>
                 </div>
@@ -974,10 +1067,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=17"></script>
-  <script src="engine.js?v=17"></script>
+  <script src="data.js?v=18"></script>
+  <script src="engine.js?v=18"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

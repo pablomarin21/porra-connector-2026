@@ -481,6 +481,10 @@ tr.clickrow.sel td{background:#e7f1ec}
 .bd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .bd-chips span{background:#eef3f0;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:.78rem;font-weight:600;color:#3a4a43}
 .bd-chips .bd-total{background:var(--green);color:#fff;border-color:var(--green);font-weight:800}
+.det-live{display:flex;flex-wrap:wrap;gap:8px;margin:-2px 0 12px}
+.det-live span{display:flex;align-items:center;gap:5px;background:#f0f6f3;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:600;color:#37463f}
+.det-live .dl-win{background:#eef9f1;border-color:#bfe6cd}
+.det-live b{color:var(--green);font-weight:800}
 .qv-champ{text-align:center;margin-bottom:12px}
 .qv-champ small{color:var(--muted);text-transform:uppercase;font-size:.7rem;letter-spacing:.5px}
 .qv-champ-team{display:flex;align-items:center;justify-content:center;gap:8px;font-size:1.2rem;color:var(--green)}
@@ -495,6 +499,18 @@ tr.clickrow.sel td{background:#e7f1ec}
 .qv-group{background:#fbfdfc;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:.78rem;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .qv-gteam{padding:1px 6px;border-radius:5px}
 .qv-gteam.qual{background:#eafaf0} .qv-gteam.third{background:#fff7e3} .qv-gteam.out{color:var(--muted)}
+/* Quinielas: lista de participantes (ver la porra completa de cada uno) */
+.qgrid{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.qcard{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:13px 14px;text-align:left;box-shadow:0 4px 11px rgba(0,0,0,.06);width:100%}
+.qcard.sel{border-color:var(--green);background:#f1f8f4}
+.qcard.me{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,197,66,.18)}
+.qcard.bot{background:linear-gradient(120deg,#f3f0ff,#fff)}
+.qcard-l{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.qcard-name{font-weight:800;color:#26342e;font-size:.98rem}
+.qcard-r{display:flex;align-items:center;gap:10px;flex:none}
+.qcard-champ{display:flex;align-items:center;gap:5px;font-size:.82rem;font-weight:700;color:var(--green);background:#eaf4ee;border-radius:999px;padding:4px 10px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.qcard-champ .flag{font-size:1.05rem;flex:none}
+.qcard-arrow{color:var(--muted);font-size:.7rem;flex:none}
 @media(max-width:640px){ .se-grid{grid-template-columns:1fr} .qv-row>b{min-width:auto;width:100%} }
 
 /* ===== Cuenta atrás / en vivo / especiales / podio ===== */
