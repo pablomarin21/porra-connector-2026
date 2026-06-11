@@ -410,8 +410,8 @@
       const cs = comp.competitors || []; if (cs.length !== 2) continue;
       const A = cs.find((c) => c.homeAway === "home") || cs[0];
       const B = cs.find((c) => c.homeAway === "away") || cs[1];
-      const tA = DATA.espnCanon(A.team.displayName), tB = DATA.espnCanon(B.team.displayName);
-      if (!tA || !tB) continue; // placeholder: equipos sin decidir todavía
+      const tA = DATA.espnCanon(A.team && A.team.displayName), tB = DATA.espnCanon(B.team && B.team.displayName);
+      if (!tA || !tB) continue; // placeholder / payload incompleto: equipos sin decidir todavía
       const completed = !!(ev.status && ev.status.type && ev.status.type.completed);
       const date = (ev.date || "").slice(0, 10);
       const sA = parseInt(A.score, 10), sB = parseInt(B.score, 10);
