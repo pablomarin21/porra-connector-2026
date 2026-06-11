@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -341,7 +341,7 @@
       </div>
       <div class="rules-box">
         <h3>🏆 El cuadro eliminatorio</h3>
-        <p>Se lee de <b>izquierda (1/16) → derecha (campeón 🏆)</b>. <b>Toca al equipo que crees que gana</b> cada cruce y avanza solo a la siguiente ronda. <b>👉 Desliza el cuadro de lado</b> para ver todo el recorrido.</p>
+        <p>Vas <b>ronda por ronda</b> de izquierda a derecha: <b>1/16 → octavos → … → 🏆 campeón</b>. <b>Toca al equipo que crees que gana</b> cada cruce; el ganador pasa solo a la siguiente ronda. Usa las <b>pestañas</b> de arriba para moverte.</p>
         <p class="tiny muted">Los huecos <b>🥉 Mejor 3º</b> y <b>1º/2º Grupo X</b> se rellenan solos cuando completes <b>los 72 marcadores</b> (de ahí salen los clasificados).</p>
         <p class="tiny" :class="bracketDone ? 'ok' : 'muted'" x-text="bracketDone ? '✅ ¡Cuadro completo! Tu campeón: '+es(myChampion) : 'Cruces decididos: '+bracketPicked+' de 31'"></p>
       </div>
@@ -361,32 +361,42 @@
       <div class="autothirds pend" x-show="!scoresComplete">
         🥉 Los <b>8 mejores terceros</b> se calcularán solos cuando pongas <b>los 72 marcadores</b> (te faltan <span x-text="72-scoresFilled"></span>).
       </div>
-      <div class="bracket-scroll">
-        <div class="bracket">
-          <template x-for="col in bracketCols" :key="col.key">
-            <div class="bcol">
-              <div class="bcol-h" x-text="col.title"></div>
-              <template x-for="m in col.matches" :key="m.match">
-                <div class="bmatch" :class="{nope: !m.a || !m.b}">
-                  <button class="bteam" :class="{sel: bracket[m.match]===m.a, dim: bracket[m.match] && bracket[m.match]!==m.a}"
-                          :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.a)">
-                    <span class="flag" x-show="m.a" x-text="m.a?flag(m.a):''"></span><span :class="{bslot:!m.a}" x-text="m.a?es(m.a):m.aLabel"></span>
-                  </button>
-                  <button class="bteam" :class="{sel: bracket[m.match]===m.b, dim: bracket[m.match] && bracket[m.match]!==m.b}"
-                          :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.b)">
-                    <span class="flag" x-show="m.b" x-text="m.b?flag(m.b):''"></span><span :class="{bslot:!m.b}" x-text="m.b?es(m.b):m.bLabel"></span>
-                  </button>
-                </div>
-              </template>
+      <div class="brk">
+        <!-- pestañas de ronda (1/16 → final) -->
+        <div class="brk-tabs">
+          <template x-for="(col,i) in bracketCols" :key="'rt'+col.key">
+            <button class="brk-tab" :class="{on: brRound===i, done: roundReady(i) && roundPicked(i)===col.matches.length}" @click="brRound=i">
+              <b x-text="col.title"></b>
+              <small x-text="roundPicked(i)+'/'+col.matches.length"></small>
+            </button>
+          </template>
+        </div>
+        <!-- partidos de la ronda actual (uno cada vez = cabe en móvil) -->
+        <div class="brk-body">
+          <template x-for="m in (bracketCols[brRound] ? bracketCols[brRound].matches : [])" :key="'bm'+m.match">
+            <div class="bmatch" :class="{nope: !m.a || !m.b}">
+              <button class="bteam" :class="{sel: bracket[m.match]===m.a, dim: bracket[m.match] && bracket[m.match]!==m.a}"
+                      :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.a)">
+                <span class="flag" x-show="m.a" x-text="m.a?flag(m.a):''"></span><span :class="{bslot:!m.a}" x-text="m.a?es(m.a):m.aLabel"></span>
+              </button>
+              <span class="bvs">vs</span>
+              <button class="bteam" :class="{sel: bracket[m.match]===m.b, dim: bracket[m.match] && bracket[m.match]!==m.b}"
+                      :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.b)">
+                <span class="flag" x-show="m.b" x-text="m.b?flag(m.b):''"></span><span :class="{bslot:!m.b}" x-text="m.b?es(m.b):m.bLabel"></span>
+              </button>
             </div>
           </template>
-          <div class="bcol champ-col">
-            <div class="bcol-h">🏆 Campeón</div>
-            <div class="champ-box" :class="{set: myChampion}">
-              <span class="flag big" x-text="myChampion?flag(myChampion):'🏆'"></span>
-              <span x-text="myChampion?es(myChampion):'¿?'"></span>
-            </div>
+          <!-- campeón al llegar a la final -->
+          <div class="champ-box" x-show="bracketCols.length && brRound===bracketCols.length-1" :class="{set: myChampion}">
+            <span class="flag big" x-text="myChampion?flag(myChampion):'🏆'"></span>
+            <span x-text="myChampion?('🏆 Tu campeón: '+es(myChampion)):'Elige al ganador de la final ⬆'"></span>
           </div>
+        </div>
+        <!-- navegación entre rondas -->
+        <div class="brk-nav">
+          <button class="brk-arrow" :disabled="brRound===0" @click="brPrev()">← Anterior</button>
+          <span class="brk-now" x-text="bracketCols[brRound] ? bracketCols[brRound].title : ''"></span>
+          <button class="brk-arrow" :disabled="brRound>=bracketCols.length-1" @click="brNext()">Siguiente →</button>
         </div>
       </div>
       <div class="step-nav">
@@ -964,10 +974,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=16"></script>
-  <script src="engine.js?v=16"></script>
+  <script src="data.js?v=17"></script>
+  <script src="engine.js?v=17"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

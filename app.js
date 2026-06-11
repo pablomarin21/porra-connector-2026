@@ -46,7 +46,7 @@ const ERRORS = {
 window.porraApp = function () {
   return {
     // navegación
-    view: "home", booting: true, loadFailed: false, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all", openMatch: null,
+    view: "home", booting: true, loadFailed: false, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all", openMatch: null, brRound: 0,
     teamProbs: {}, teamProbsSims: 0, scorers: [], assisters: [],
     phase: "welcome", gIdx: 0, chosenNew: false, confirmClaim: null, claimFromName: false,
     wmode: "choose", entriesLoaded: false,
@@ -483,7 +483,18 @@ window.porraApp = function () {
       const t = s.slice(0, i), g = s.slice(i + 1);
       return (t === "W" ? "1º Grupo " : t === "RU" ? "2º Grupo " : "") + g;
     },
-    pickWinner(match, team) { if (!team || this.isLocked) return; this.bracket[match] = team; this.rebuild(); this.persistDraft(); },
+    pickWinner(match, team) {
+      if (!team || this.isLocked) return;
+      this.bracket[match] = team; this.rebuild(); this.persistDraft();
+      // auto-avanza a la siguiente ronda cuando completas la actual
+      const c = this._cols[this.brRound];
+      if (c && this.brRound < this._cols.length - 1 && c.matches.every((m) => this.bracket[m.match])) this.brRound++;
+    },
+    // navegación por rondas (móvil: una ronda cada vez)
+    roundPicked(i) { const c = this._cols[i]; return c ? c.matches.filter((m) => this.bracket[m.match]).length : 0; },
+    roundReady(i) { const c = this._cols[i]; return c ? c.matches.every((m) => m.a && m.b) : false; },
+    brNext() { if (this.brRound < this._cols.length - 1) this.brRound++; },
+    brPrev() { if (this.brRound > 0) this.brRound--; },
     get bracketCols() { return this._cols; },
     get myChampion() { return this._champion; },
     get bracketPicked() { let n = 0; for (const m of [...D.R32, ...D.R16, ...D.QF, ...D.SF, D.FINAL]) if (this.bracket[m.match]) n++; return n; },
@@ -591,7 +602,7 @@ window.porraApp = function () {
       try { localStorage.setItem("porra_me_" + this.pool.code, JSON.stringify({ id: this.me.id, first: this.me.first, last: this.me.last, picks })); } catch (e) {}
     },
     // panel "Mi porra" (resumen): navegación fácil + estado
-    editSection(name) { this.deriveGroups(); if (name === "groups") this.gIdx = 0; this.phase = name; },
+    editSection(name) { this.deriveGroups(); if (name === "groups") this.gIdx = 0; if (name === "bracket") this.brRound = 0; this.phase = name; },
     goHub() { if (!this.isLocked) { this._save(true); this.toast("Guardado ✓"); } this.phase = "hub"; },
     // Cambiar de jugador (móvil compartido): cierra la sesión local y vuelve a pedir nombre.
     logout() {
@@ -623,9 +634,9 @@ window.porraApp = function () {
       };
     },
     startGroups() { this.phase = "groups"; this.gIdx = 0; this.deriveGroups(); },
-    nextGroup() { if (this.gIdx < 11) { this.gIdx++; this.persistDraft(); } else { this.rebuild(); this.phase = "bracket"; this._save(true); } },
+    nextGroup() { if (this.gIdx < 11) { this.gIdx++; this.persistDraft(); } else { this.rebuild(); this.brRound = 0; this.phase = "bracket"; this._save(true); } },
     prevGroup() { if (this.gIdx > 0) this.gIdx--; else this.goHub(); },
-    goBracketPhase() { this.rebuild(); this.phase = "bracket"; this._save(true); },
+    goBracketPhase() { this.rebuild(); this.brRound = 0; this.phase = "bracket"; this._save(true); },
     goExtras() { this.phase = "extras"; this._save(true); },
     toggleSideBet(key, val) { if (this.isLocked) return; this.extras.sidebets[key] = this.extras.sidebets[key] === val ? "" : val; this.persistDraft(); },
     async finishPorra() {
