@@ -285,8 +285,8 @@ const ENGINE=(function(DATA){
         groupRank[L] = s.map((x, i) => ({ firm: true, worstRank: i }));
       } else {
         allComplete = false;
-        // EN DIRECTO: tabla actual, pero SOLO puntúan las posiciones ya decididas por resultados.
-        if (s.some((x) => x.pj > 0)) { groupOrder[L] = s.map((x) => x.team); groupRank[L] = rankBands(s); }
+        // CONNECTOR: en vivo SOLO puntúan los MARCADORES (por partido). El "plus de grupos"
+        // (orden 1º-4º, clasifica, bonus) se da cuando el grupo TERMINA, no provisional.
       }
     }
     let qualifiedThirdTeams = null;

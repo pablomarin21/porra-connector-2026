@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=20" />
+  <link rel="stylesheet" href="styles.css?v=21" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -243,11 +243,10 @@
         <div class="how-points">
           <div class="hp-title">🏆 Cómo se puntúa</div>
           <ul class="score-list">
-            <li>⚽ <b>Cada partido de grupo:</b> marcador <b>exacto</b> +<span x-text="settings.exact"></span> · acertar el resultado <b>1-X-2</b> (gana/empata/pierde) +<span x-text="settings.result"></span></li>
-            <li>📊 <b>Orden del grupo:</b> acertar el 1º +<span x-text="settings.g1"></span> · 2º +<span x-text="settings.g2"></span> · 3º +<span x-text="settings.g3"></span> · cada equipo que clasifica (top 2) +<span x-text="settings.qual"></span></li>
-            <li>🎁 <b>Bonus grupo exacto:</b> si el grupo queda <b>justo en tu orden</b> (1º-2º-3º-4º) +<span x-text="settings.groupExact"></span></li>
-            <li>🥉 <b>Mejores terceros:</b> cada tercero tuyo que acaba clasificando +<span x-text="settings.thirdQual"></span></li>
-            <li>🏆 <b>Eliminatorias:</b> por cada equipo que llega a octavos +<span x-text="settings.octavos"></span> · cuartos +<span x-text="settings.cuartos"></span> · semis +<span x-text="settings.semis"></span> · final +<span x-text="settings.finalists"></span> · <b>campeón +<span x-text="settings.champion"></span></b></li>
+            <li>⚽ <b>Cada partido</b> <span class="muted">(EN VIVO, al acabar el partido):</span> marcador <b>exacto</b> +<span x-text="settings.exact"></span> · acertar <b>1-X-2</b> (gana/empata/pierde) +<span x-text="settings.result"></span></li>
+            <li>📊 <b>Plus de grupo</b> <span class="muted">(cuando TERMINA el grupo):</span> 1º +<span x-text="settings.g1"></span> · 2º +<span x-text="settings.g2"></span> · 3º +<span x-text="settings.g3"></span> · clasifica (top 2) +<span x-text="settings.qual"></span> · 🎁 orden completo 1º-4º +<span x-text="settings.groupExact"></span></li>
+            <li>🥉 <b>Mejores terceros</b> <span class="muted">(al acabar los grupos):</span> cada tercero tuyo que clasifica +<span x-text="settings.thirdQual"></span></li>
+            <li>🏆 <b>Eliminatorias:</b> octavos +<span x-text="settings.octavos"></span> · cuartos +<span x-text="settings.cuartos"></span> · semis +<span x-text="settings.semis"></span> · final +<span x-text="settings.finalists"></span> · <b>campeón +<span x-text="settings.champion"></span></b></li>
             <li>⭐ <b>Especiales (aparte):</b> revelación +<span x-text="settings.revelacion"></span> · decepción +<span x-text="settings.decepcion"></span> · pichichi +<span x-text="settings.pichichi"></span> · asistente +<span x-text="settings.asistente"></span> · hat-trick +<span x-text="settings.hattrick"></span> · doble roja +<span x-text="settings.dobleRoja"></span></li>
           </ul>
         </div>
@@ -475,43 +474,34 @@
     <details class="scoring-explain">
       <summary>📋 ¿Cómo se puntúa? — el modelo de la porra</summary>
       <div class="se-body">
-        <p><b>Tu pronóstico:</b> el <b>marcador</b> de los 72 partidos de grupos (de ahí salen el orden de cada grupo y los 8 mejores terceros) y el <b>cuadro</b> hasta el campeón. Sumas puntos por cada acierto.</p>
+        <p>En esta porra pusiste el <b>resultado exacto</b> de los 72 partidos de grupos (de ahí salen el orden de cada grupo y los 8 terceros) y el <b>cuadro</b> hasta el campeón.</p>
         <div class="se-grid">
           <div class="se-card">
-            <h4>⚽ Cada partido de grupo</h4>
+            <h4>⚽ Cada partido <small>· EN VIVO, al acabar el partido</small></h4>
             <ul>
-              <li><b>Marcador exacto</b> (lo clavas) <span class="pp" x-text="'+'+settings.exact"></span></li>
-              <li>Acertar <b>1-X-2</b> (gana/empata/pierde) <span class="pp" x-text="'+'+settings.result"></span></li>
+              <li><b>Clavas el marcador</b> exacto <span class="pp" x-text="'+'+settings.exact"></span> <span class="muted tiny">(pones 2-0 y queda 2-0)</span></li>
+              <li>Aciertas solo <b>quién gana o empate</b> (1-X-2) <span class="pp" x-text="'+'+settings.result"></span> <span class="muted tiny">(pones 1-0 y queda 2-0)</span></li>
             </ul>
-            <h4>📊 Orden del grupo</h4>
+            <h4>📊 Plus de grupo <small>· cuando TERMINA el grupo</small></h4>
             <ul>
-              <li>Acertar el <b>1º</b> <span class="pp" x-text="'+'+settings.g1"></span></li>
-              <li>Acertar el <b>2º</b> <span class="pp" x-text="'+'+settings.g2"></span></li>
-              <li>Acertar el <b>3º</b> <span class="pp" x-text="'+'+settings.g3"></span></li>
-              <li>Equipo que <b>clasifica</b> (top 2) <span class="pp" x-text="'+'+settings.qual"></span></li>
-              <li>🎁 <b>Grupo exacto</b> (orden 1º-4º) <span class="pp" x-text="'+'+settings.groupExact"></span></li>
+              <li>Aciertas el <b>1º</b> <span class="pp" x-text="'+'+settings.g1"></span> · <b>2º</b> <span class="pp" x-text="'+'+settings.g2"></span> · <b>3º</b> <span class="pp" x-text="'+'+settings.g3"></span></li>
+              <li>Cada equipo que <b>clasifica</b> (top 2) <span class="pp" x-text="'+'+settings.qual"></span></li>
+              <li>🎁 <b>Orden completo</b> del grupo (1º-2º-3º-4º) <span class="pp" x-text="'+'+settings.groupExact"></span></li>
             </ul>
           </div>
           <div class="se-card">
-            <h4>🥉 Mejores terceros</h4>
-            <ul><li>Por cada tercero tuyo que <b>clasifica</b> <span class="pp" x-text="'+'+settings.thirdQual"></span></li></ul>
-            <h4>🏆 Eliminatorias <small>(por cada equipo que llega)</small></h4>
+            <h4>🥉 Mejores terceros <small>· al acabar los grupos</small></h4>
+            <ul><li>Cada tercero tuyo que acaba <b>clasificando</b> <span class="pp" x-text="'+'+settings.thirdQual"></span></li></ul>
+            <h4>🏆 Eliminatorias <small>· según avanzan</small></h4>
             <ul>
-              <li>Llega a <b>octavos</b> <span class="pp" x-text="'+'+settings.octavos"></span></li>
-              <li>Llega a <b>cuartos</b> <span class="pp" x-text="'+'+settings.cuartos"></span></li>
-              <li>Llega a <b>semifinal</b> <span class="pp" x-text="'+'+settings.semis"></span></li>
-              <li>Llega a la <b>final</b> <span class="pp" x-text="'+'+settings.finalists"></span></li>
-              <li>Acierta el <b>campeón</b> <span class="pp" x-text="'+'+settings.champion"></span></li>
+              <li>Tu equipo llega a <b>octavos</b> <span class="pp" x-text="'+'+settings.octavos"></span> · <b>cuartos</b> <span class="pp" x-text="'+'+settings.cuartos"></span></li>
+              <li><b>semis</b> <span class="pp" x-text="'+'+settings.semis"></span> · <b>final</b> <span class="pp" x-text="'+'+settings.finalists"></span> · <b>campeón</b> <span class="pp" x-text="'+'+settings.champion"></span></li>
             </ul>
-            <h4>⭐ Especiales <small>(aparte)</small></h4>
-            <ul>
-              <li>Revelación <span class="pp" x-text="'+'+settings.revelacion"></span> · Decepción <span class="pp" x-text="'+'+settings.decepcion"></span></li>
-              <li>Pichichi <span class="pp" x-text="'+'+settings.pichichi"></span> · Asistente <span class="pp" x-text="'+'+settings.asistente"></span></li>
-              <li>Hat-trick <span class="pp" x-text="'+'+settings.hattrick"></span> · Doble roja <span class="pp" x-text="'+'+settings.dobleRoja"></span></li>
-            </ul>
+            <h4>⭐ Especiales <small>· aparte</small></h4>
+            <ul><li>Revelación <span class="pp" x-text="'+'+settings.revelacion"></span> · Decepción <span class="pp" x-text="'+'+settings.decepcion"></span> · Pichichi <span class="pp" x-text="'+'+settings.pichichi"></span> · Asistente <span class="pp" x-text="'+'+settings.asistente"></span> · Hat-trick <span class="pp" x-text="'+'+settings.hattrick"></span> · Doble roja <span class="pp" x-text="'+'+settings.dobleRoja"></span></li></ul>
           </div>
         </div>
-        <p class="tiny muted">El organizador puede ajustar estos valores en Admin → Puntuación. Los puntos se recalculan solos según se juegan los partidos.</p>
+        <p class="tiny muted">💡 <b>En vivo solo cuentan los marcadores.</b> El plus de grupo se suma cuando ese grupo termina. El organizador puede ajustar los valores en Admin → Puntuación.</p>
       </div>
     </details>
 
@@ -524,7 +514,7 @@
       <button class="btn mini ghost" @click="loadBoard()" :disabled="probBusy"><span x-show="!probBusy">↻ actualizar</span><span x-show="probBusy">…</span></button>
     </div>
 
-    <p class="tiny muted live-note" x-show="boardLocked">⚡ <b>Puntuación EN DIRECTO</b>: marcadores acertados + orden de cada grupo con los resultados de ahora mismo; se recalcula sola con cada partido. Mientras un grupo no termine, su orden es <b>provisional</b> (puede cambiar).</p>
+    <p class="tiny muted live-note" x-show="boardLocked">⚡ <b>Puntuación EN DIRECTO</b>: cada partido suma sus <b>marcadores</b> (clavar +<span x-text="settings.exact"></span> / acertar 1-X-2 +<span x-text="settings.result"></span>) en cuanto acaba. El <b>plus de orden de grupo</b> se añade <b>cuando ese grupo termina</b>.</p>
 
     <!-- Podio -->
     <template x-if="ranked.length>=2">
@@ -1069,10 +1059,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=20"></script>
-  <script src="engine.js?v=20"></script>
+  <script src="data.js?v=21"></script>
+  <script src="engine.js?v=21"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
