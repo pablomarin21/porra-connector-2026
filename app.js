@@ -338,6 +338,7 @@ window.porraApp = function () {
           else { this.me.id = null; this.me.saved = false; this.phase = "welcome"; }
         }
         if (this.me.id) this.tab = "leaderboard";   // quien ya juega entra directo a la Clasificación
+        if (this.me.finishGrace) this.tab = "play";  // …salvo quien tiene permiso para terminar: a su porra, a completarla
         this.fetchEspn(true);
         if (this.tab === "leaderboard") this.loadBoard();
         return true;
