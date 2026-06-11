@@ -472,8 +472,16 @@ window.porraApp = function () {
       for (const m of D.R32) winnerOf[m.match] = valid(m.match);
       for (const list of [D.R16, D.QF, D.SF, [D.FINAL]]) for (const m of list) { tbm[m.match] = { a: winnerOf[m.a] || null, b: winnerOf[m.b] || null }; winnerOf[m.match] = valid(m.match); }
       const defs = [{ key: "r32", title: "1/16", list: D.R32 }, { key: "r16", title: "Octavos", list: D.R16 }, { key: "qf", title: "Cuartos", list: D.QF }, { key: "sf", title: "Semis", list: D.SF }, { key: "final", title: "Final", list: [D.FINAL] }];
-      this._cols = defs.map((d) => ({ key: d.key, title: d.title, matches: d.list.map((m) => ({ match: m.match, a: tbm[m.match].a, b: tbm[m.match].b })) }));
+      this._cols = defs.map((d) => ({ key: d.key, title: d.title, matches: d.list.map((m) => ({ match: m.match, a: tbm[m.match].a, b: tbm[m.match].b, aLabel: this.slotLabel(m.a), bLabel: this.slotLabel(m.b) })) }));
       this._champion = winnerOf[D.FINAL.match] || null;
+    },
+    // Qué le toca a un hueco vacío del cuadro (para que NUNCA salga "—" sin explicación).
+    slotLabel(code) {
+      if (code === "3rd") return "🥉 Mejor 3º";
+      const s = String(code), i = s.indexOf("-");
+      if (i < 0) return "Ganador";   // ronda posterior: depende de tu pick anterior
+      const t = s.slice(0, i), g = s.slice(i + 1);
+      return (t === "W" ? "1º Grupo " : t === "RU" ? "2º Grupo " : "") + g;
     },
     pickWinner(match, team) { if (!team || this.isLocked) return; this.bracket[match] = team; this.rebuild(); this.persistDraft(); },
     get bracketCols() { return this._cols; },

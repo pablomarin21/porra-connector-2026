@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link rel="stylesheet" href="styles.css?v=16" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -341,8 +341,9 @@
       </div>
       <div class="rules-box">
         <h3>🏆 El cuadro eliminatorio</h3>
-        <p>Con tus clasificados ya está montado el cuadro. <b>Toca al equipo que crees que gana</b> cada cruce: el ganador avanza solo a la siguiente columna, desde 1/16 hasta la final.</p>
-        <p class="tiny" :class="bracketDone ? 'ok' : 'muted'" x-text="bracketDone ? '✅ ¡Cuadro completo! Tu campeón: '+es(myChampion) : 'Cruces decididos: '+bracketPicked+' de 31  ·  ve tocando ganadores, ronda por ronda ↓'"></p>
+        <p>Se lee de <b>izquierda (1/16) → derecha (campeón 🏆)</b>. <b>Toca al equipo que crees que gana</b> cada cruce y avanza solo a la siguiente ronda. <b>👉 Desliza el cuadro de lado</b> para ver todo el recorrido.</p>
+        <p class="tiny muted">Los huecos <b>🥉 Mejor 3º</b> y <b>1º/2º Grupo X</b> se rellenan solos cuando completes <b>los 72 marcadores</b> (de ahí salen los clasificados).</p>
+        <p class="tiny" :class="bracketDone ? 'ok' : 'muted'" x-text="bracketDone ? '✅ ¡Cuadro completo! Tu campeón: '+es(myChampion) : 'Cruces decididos: '+bracketPicked+' de 31'"></p>
       </div>
       <!-- 8 mejores terceros AUTOMÁTICOS (solo lectura, salen de los marcadores) -->
       <div class="autothirds" x-show="scoresComplete">
@@ -369,11 +370,11 @@
                 <div class="bmatch" :class="{nope: !m.a || !m.b}">
                   <button class="bteam" :class="{sel: bracket[m.match]===m.a, dim: bracket[m.match] && bracket[m.match]!==m.a}"
                           :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.a)">
-                    <span class="flag" x-text="m.a?flag(m.a):''"></span><span x-text="m.a?es(m.a):'—'"></span>
+                    <span class="flag" x-show="m.a" x-text="m.a?flag(m.a):''"></span><span :class="{bslot:!m.a}" x-text="m.a?es(m.a):m.aLabel"></span>
                   </button>
                   <button class="bteam" :class="{sel: bracket[m.match]===m.b, dim: bracket[m.match] && bracket[m.match]!==m.b}"
                           :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.b)">
-                    <span class="flag" x-text="m.b?flag(m.b):''"></span><span x-text="m.b?es(m.b):'—'"></span>
+                    <span class="flag" x-show="m.b" x-text="m.b?flag(m.b):''"></span><span :class="{bslot:!m.b}" x-text="m.b?es(m.b):m.bLabel"></span>
                   </button>
                 </div>
               </template>
@@ -963,10 +964,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=15"></script>
-  <script src="engine.js?v=15"></script>
+  <script src="data.js?v=16"></script>
+  <script src="engine.js?v=16"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

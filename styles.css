@@ -120,19 +120,21 @@ input:focus,select:focus{outline:none;border-color:var(--green2)}
 
 /* ===== Bracket ===== */
 /* Cuadro eliminatorio: vertical, ronda por ronda (bien estructurado en móvil) */
-.bracket-scroll{overflow:visible;padding:0}
-.bracket{display:flex;flex-direction:column;gap:16px;min-width:0}
-.bcol{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;min-width:0}
-.bcol-h{flex:0 0 100%;font-weight:900;color:#fff;font-size:.84rem;text-transform:uppercase;letter-spacing:.6px;text-align:center;background:linear-gradient(120deg,var(--green),var(--green2));border-radius:9px;padding:7px 12px;box-shadow:0 5px 14px rgba(0,0,0,.22);margin-bottom:2px}
-.bcol:not(.champ-col):not(:last-child)::after{content:"⬇";flex:0 0 100%;text-align:center;color:var(--green2);font-size:.8rem;opacity:.6;margin-top:2px}
-.bmatch{flex:1 1 calc(50% - 5px);min-width:150px;max-width:250px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:5px;display:flex;flex-direction:column;gap:4px;box-shadow:0 5px 12px rgba(0,0,0,.07)}
-.bmatch.nope{opacity:.45}
-.bteam{display:flex;align-items:center;gap:7px;background:#f7faf8;border:1.5px solid var(--line);border-radius:8px;padding:8px 9px;font-size:.84rem;font-weight:600;text-align:left;width:100%}
-.bteam .flag{font-size:1.05rem}
+/* cuadro: rondas en columnas de IZQUIERDA→DERECHA (scroll horizontal) para ver todo el recorrido */
+.bracket-scroll{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;padding:2px 0 10px;margin:0 -2px}
+.bracket{display:flex;flex-direction:row;align-items:flex-start;gap:12px;width:max-content;padding:0 2px}
+.bcol{display:flex;flex-direction:column;gap:9px;flex:0 0 auto;width:158px}
+.bcol-h{font-weight:900;color:#fff;font-size:.76rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;background:linear-gradient(120deg,var(--green),var(--green2));border-radius:9px;padding:7px 10px;box-shadow:0 5px 14px rgba(0,0,0,.22)}
+.bmatch{background:#fff;border:1px solid var(--line);border-radius:11px;padding:5px;display:flex;flex-direction:column;gap:4px;box-shadow:0 5px 12px rgba(0,0,0,.07)}
+.bmatch.nope{border-style:dashed;border-color:#cdd9d3}
+.bteam{display:flex;align-items:center;gap:7px;background:#f7faf8;border:1.5px solid var(--line);border-radius:8px;padding:8px 9px;font-size:.82rem;font-weight:600;text-align:left;width:100%;min-width:0}
+.bteam>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bteam .flag{font-size:1.05rem;flex:none}
+.bteam .bslot{color:var(--muted);font-weight:600;font-style:italic;font-size:.76rem}
 .bteam.sel{border-color:var(--ok);background:#e7f9ee;color:#0a6c39}
 .bteam.dim{opacity:.4}
-.champ-col{margin-top:2px}
-.champ-box{flex:0 0 100%;display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(140deg,#fff7e3,#fff);border:2px dashed var(--gold);border-radius:14px;padding:18px 14px;font-weight:800;color:var(--green);font-size:1.05rem}
+.champ-col{width:152px}
+.champ-box{display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(140deg,#fff7e3,#fff);border:2px dashed var(--gold);border-radius:14px;padding:18px 12px;font-weight:800;color:var(--green);font-size:1rem;text-align:center}
 .champ-box.set{border-style:solid;box-shadow:0 0 0 4px rgba(245,197,66,.18)}
 .champ-box .flag.big{font-size:2.2rem}
 
