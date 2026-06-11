@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -136,8 +136,11 @@
   <!-- ===================== JUGAR (mi quiniela) ===================== -->
   <section x-show="view==='pool' && tab==='play'" class="play">
 
-    <template x-if="isLocked">
+    <template x-if="isLocked && !canFinishBracket">
       <div class="banner warn">🔒 La porra está cerrada (el Mundial ya ha empezado). Puedes mirar tu quiniela pero no cambiarla. Ve a «Clasificación» para ver cómo vas.</div>
+    </template>
+    <template x-if="canFinishBracket">
+      <div class="banner ok">✅ <b>Tienes permiso para terminar tu cuadro.</b> Completa los cruces que te falten en <b>«Cuadro»</b> (octavos→campeón). Lo demás queda fijo.</div>
     </template>
     <template x-if="!isLocked && lockCountdown">
       <div class="banner countdown">⏳ Puedes editar hasta <b>1 hora antes</b> del primer partido. <b>Cierra en <span x-text="lockCountdown"></span></b> (jue 11 jun, 18:00 UTC · 20:00 en España).</div>
@@ -339,6 +342,7 @@
           <span class="mp" @click="editSection('extras')">Especiales</span>
         </div>
       </div>
+      <div class="banner ok" x-show="canFinishBracket" style="margin-bottom:12px">✅ <b>Permiso para terminar tu cuadro.</b> La porra está cerrada, pero puedes <b>completar los cruces que te falten</b> (octavos→campeón). Lo que ya elegiste (1/16, marcadores, terceros y especiales) <b>queda fijo</b> y no se puede cambiar.</div>
       <div class="rules-box">
         <h3>🏆 El cuadro eliminatorio</h3>
         <p>Vas <b>ronda por ronda</b> de izquierda a derecha: <b>1/16 → octavos → … → 🏆 campeón</b>. <b>Toca al equipo que crees que gana</b> cada cruce; el ganador pasa solo a la siguiente ronda. Usa las <b>pestañas</b> de arriba para moverte.</p>
@@ -375,13 +379,13 @@
         <div class="brk-body">
           <template x-for="m in (bracketCols[brRound] ? bracketCols[brRound].matches : [])" :key="'bm'+m.match">
             <div class="bmatch" :class="{nope: !m.a || !m.b}">
-              <button class="bteam" :class="{sel: bracket[m.match]===m.a, dim: bracket[m.match] && bracket[m.match]!==m.a}"
-                      :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.a)">
+              <button class="bteam" :class="{sel: bracket[m.match]===m.a, dim: bracket[m.match] && bracket[m.match]!==m.a, locked: isLocked && bracket[m.match] && canFinishBracket}"
+                      :disabled="!m.a || !m.b || !bracketEditable(m.match)" @click="pickWinner(m.match, m.a)">
                 <span class="flag" x-show="m.a" x-text="m.a?flag(m.a):''"></span><span :class="{bslot:!m.a}" x-text="m.a?es(m.a):m.aLabel"></span>
               </button>
               <span class="bvs">vs</span>
-              <button class="bteam" :class="{sel: bracket[m.match]===m.b, dim: bracket[m.match] && bracket[m.match]!==m.b}"
-                      :disabled="!m.a || !m.b || (isLocked)" @click="pickWinner(m.match, m.b)">
+              <button class="bteam" :class="{sel: bracket[m.match]===m.b, dim: bracket[m.match] && bracket[m.match]!==m.b, locked: isLocked && bracket[m.match] && canFinishBracket}"
+                      :disabled="!m.a || !m.b || !bracketEditable(m.match)" @click="pickWinner(m.match, m.b)">
                 <span class="flag" x-show="m.b" x-text="m.b?flag(m.b):''"></span><span :class="{bslot:!m.b}" x-text="m.b?es(m.b):m.bLabel"></span>
               </button>
             </div>
@@ -1059,10 +1063,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=21"></script>
-  <script src="engine.js?v=21"></script>
+  <script src="data.js?v=22"></script>
+  <script src="engine.js?v=22"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

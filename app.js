@@ -198,6 +198,8 @@ window.porraApp = function () {
       window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); this.deferredPrompt = e; });
       window.addEventListener("appinstalled", () => { this.deferredPrompt = null; this.showInstall = false; });
       this._espnTimer = setInterval(() => { if (!this.pool) return; if (this.tab === "leaderboard") this.loadBoard(); else if (this.tab === "results") this.fetchEspn(false); }, 60000);
+      // Al volver a la pestaña/app, refresca al instante (clasificación siempre al día con lo que se está jugando).
+      document.addEventListener("visibilitychange", () => { if (!document.hidden && this.pool) { if (this.tab === "leaderboard") this.loadBoard(); else if (this.tab === "results") this.fetchEspn(false); } });
       // El enlace carga directamente la porra Connector → el usuario solo pone nombre + apellido.
       // Reintenta si la red falla (datos móviles flojos / cold start) en vez de caer a la pantalla de inicio.
       const code = new URLSearchParams(location.search).get("porra");
@@ -217,6 +219,10 @@ window.porraApp = function () {
 
     // ---------- cierre automático ----------
     get isLocked() { return !!(this.pool && (this.pool.locked || (this.pool.lock_at && this.nowTs >= Date.parse(this.pool.lock_at)))); },
+    // "Gracia para completar": aunque la porra esté cerrada, este jugador puede rellenar los
+    // cruces VACÍOS del cuadro (octavos→final). Lo ya enviado queda intocable (lo protege el servidor).
+    get canFinishBracket() { return !!(this.me && this.me.finishGrace && this.isLocked); },
+    bracketEditable(match) { return !this.isLocked || (this.canFinishBracket && !this.bracket[match]); },
     get lockCountdown() {
       if (!this.pool || !this.pool.lock_at) return null;
       const ms = Date.parse(this.pool.lock_at) - this.nowTs;
@@ -372,8 +378,8 @@ window.porraApp = function () {
       const src = fullness(draft) > fullness(mine) ? draft : (mine || draft);
       this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this._thirdsTouched = false; this.bracket = {};
       this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} };
-      this.me = { first: "", last: "", id: null, saved: false };
-      if (mine) { this.me = { first: mine.first || "", last: mine.last || "", id: mine.id || null, saved: !!mine.id }; }
+      this.me = { first: "", last: "", id: null, saved: false, finishGrace: false };
+      if (mine) { this.me = { first: mine.first || "", last: mine.last || "", id: mine.id || null, saved: !!mine.id, finishGrace: false }; }
       else if (draft) { this.me.first = draft.first || ""; this.me.last = draft.last || ""; }
       if (src) {
         const p = src.picks || src;
@@ -392,9 +398,9 @@ window.porraApp = function () {
     },
     // Autoguardado al servidor: 1,5 s tras el último cambio (marcadores, cuadro, especiales…).
     _scheduleSave() {
-      if (this.isLocked || !this.me.id) return;
+      if ((this.isLocked && !this.canFinishBracket) || !this.me.id) return;
       clearTimeout(this._saveTimer);
-      this._saveTimer = setTimeout(() => { if (this.me.id && !this.isLocked) this._save(true); }, 1500);
+      this._saveTimer = setTimeout(() => { if (this.me.id && (!this.isLocked || this.canFinishBracket)) this._save(true); }, 1500);
     },
 
     // ---------- paso 1: grupos ----------
@@ -486,7 +492,7 @@ window.porraApp = function () {
       return (t === "W" ? "1º Grupo " : t === "RU" ? "2º Grupo " : "") + g;
     },
     pickWinner(match, team) {
-      if (!team || this.isLocked) return;
+      if (!team || !this.bracketEditable(match)) return;
       this.bracket[match] = team; this.rebuild(); this.persistDraft();
       // auto-avanza a la siguiente ronda cuando completas la actual
       const c = this._cols[this.brRound];
@@ -511,7 +517,7 @@ window.porraApp = function () {
     // ---------- asistente: guardar / navegación ----------
     get currentLetter() { return this.letters[this.gIdx]; },
     async _save(quiet) {
-      if (this.isLocked) { if (!quiet) this.toast(ERRORS.POOL_LOCKED, "err"); return false; }
+      if (this.isLocked && !this.canFinishBracket) { if (!quiet) this.toast(ERRORS.POOL_LOCKED, "err"); return false; }
       if (!this.me.first.trim() || !this.me.last.trim()) { if (!quiet) this.toast(ERRORS.NAME_REQUIRED, "err"); return false; }
       this.busy = true;
       try {
@@ -555,6 +561,7 @@ window.porraApp = function () {
       try {
         const res = await this.rpc("porra2_register", { p_code: this.pool.code, p_first: this.me.first, p_last: this.me.last });
         this.me.id = res.participant_id; this.me.saved = true;
+        this.me.finishGrace = !!res.finish_grace;
         if (res.claimed && res.picks && Object.keys(res.picks).length) this.applyPicks(res.picks);
         this._persistMe();
         this.chosenNew = false;
@@ -582,6 +589,7 @@ window.porraApp = function () {
       try {
         const res = await this.rpc("porra2_claim", { p_code: this.pool.code, p_participant_id: sel.id });
         this.me.id = res.participant_id; this.me.first = res.first_name; this.me.last = res.last_name; this.me.saved = true;
+        this.me.finishGrace = !!sel.finish_grace;   // permiso para completar el cuadro (si lo tiene)
         if (res.picks && Object.keys(res.picks).length) this.applyPicks(res.picks);
         this._persistMe();
         this.confirmClaim = null; this.claimFromName = false; this.chosenNew = false; this.phase = "hub";
@@ -605,7 +613,7 @@ window.porraApp = function () {
     },
     // panel "Mi porra" (resumen): navegación fácil + estado
     editSection(name) { this.deriveGroups(); if (name === "groups") this.gIdx = 0; if (name === "bracket") this.brRound = 0; this.phase = name; },
-    goHub() { if (!this.isLocked) { this._save(true); this.toast("Guardado ✓"); } this.phase = "hub"; },
+    goHub() { if (!this.isLocked || this.canFinishBracket) { this._save(true); this.toast("Guardado ✓"); } this.phase = "hub"; },
     // Cambiar de jugador (móvil compartido): cierra la sesión local y vuelve a pedir nombre.
     logout() {
       clearTimeout(this._saveTimer);
@@ -675,6 +683,8 @@ window.porraApp = function () {
       }
       this.entries = entries || [];
       this.entriesLoaded = true;
+      const meE = this.me.id ? this.entries.find((e) => e.id === this.me.id) : null;
+      this.me.finishGrace = !!(meE && meE.finish_grace);   // ¿tiene permiso para completar el cuadro?
       if (!opts || opts.recompute !== false) this.recomputeRanking();
     },
 
