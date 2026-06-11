@@ -532,6 +532,7 @@ tr.clickrow.sel td{background:#e7f1ec}
 .sb-opts .sb-clr{padding:7px 10px;font-size:.72rem;font-weight:600}
 
 .live-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:11px;padding:8px 12px;margin-bottom:12px;font-size:.86rem;font-weight:600}
+.live-note{background:#fffaf0;border:1px solid #f0e0b8;border-radius:9px;padding:8px 11px;margin:2px 0 12px;line-height:1.45}
 .live-dot{width:10px;height:10px;border-radius:50%;background:#c7d2cc}
 .live-dot.on{background:#e0241b;box-shadow:0 0 0 0 rgba(224,36,27,.6);animation:pulse 1.4s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,36,27,.5)}70%{box-shadow:0 0 0 8px rgba(224,36,27,0)}100%{box-shadow:0 0 0 0 rgba(224,36,27,0)}}

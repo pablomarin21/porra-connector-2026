@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=18" />
+  <link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -523,6 +523,8 @@
       <span class="muted tiny" x-show="lastProb"> · <span x-text="simN.toLocaleString('es')"></span> simulaciones</span>
       <button class="btn mini ghost" @click="loadBoard()" :disabled="probBusy"><span x-show="!probBusy">↻ actualizar</span><span x-show="probBusy">…</span></button>
     </div>
+
+    <p class="tiny muted live-note" x-show="boardLocked">⚡ <b>Puntuación EN DIRECTO</b>: marcadores acertados + orden de cada grupo con los resultados de ahora mismo; se recalcula sola con cada partido. Mientras un grupo no termine, su orden es <b>provisional</b> (puede cambiar).</p>
 
     <!-- Podio -->
     <template x-if="ranked.length>=2">
@@ -1067,10 +1069,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=18"></script>
-  <script src="engine.js?v=18"></script>
+  <script src="data.js?v=19"></script>
+  <script src="engine.js?v=19"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=18"></script>
+  <script src="app.js?v=19"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
