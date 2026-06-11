@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=15" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -53,6 +53,12 @@
   </div>
 
   <main class="wrap">
+
+  <!-- Patrocinio -->
+  <a class="sponsor-bar" href="https://wealthmaia.com" target="_blank" rel="noopener noreferrer">
+    <span class="sp-ic">📈</span>
+    <span><b>wealthmaia.com</b> patrocina esta porra · <span class="sp-tag">tu asesor financiero con IA 🤖</span></span>
+  </a>
 
   <!-- AVISO persistente para quien NO ha terminado su porra (en todas las pestañas, hasta el cierre) -->
   <template x-if="view==='pool' && me.id && !isLocked && !status.complete && !(tab==='play' && phase==='hub')">
@@ -957,10 +963,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=14"></script>
-  <script src="engine.js?v=14"></script>
+  <script src="data.js?v=15"></script>
+  <script src="engine.js?v=15"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
