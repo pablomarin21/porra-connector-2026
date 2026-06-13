@@ -71,7 +71,8 @@ window.porraApp = function () {
     scoreKeys: [
       { key: "exact", label: "Marcador exacto (partido)" }, { key: "gd", label: "Resultado + diferencia" }, { key: "result", label: "Solo tendencia (1/X/2)" },
       { key: "g1", label: "Acertar 1º de grupo" }, { key: "g2", label: "Acertar 2º de grupo" },
-      { key: "g3", label: "Acertar 3º de grupo" }, { key: "qual", label: "Equipo que clasifica (top 2)" },
+      { key: "g3", label: "Acertar 3º de grupo" }, { key: "g4", label: "Acertar 4º / último de grupo" },
+      { key: "qual", label: "Equipo que clasifica (top 2)" },
       { key: "groupExact", label: "Bonus: grupo en orden exacto" },
       { key: "thirdQual", label: "Tercero que clasifica" }, { key: "octavos", label: "Llega a octavos" },
       { key: "cuartos", label: "Llega a cuartos" }, { key: "semis", label: "Llega a semifinal" },
@@ -307,6 +308,7 @@ window.porraApp = function () {
         if (pred[0] && pred[0] === a[0] && firm(0)) { g += S.g1; parts.push("1º " + es(pred[0]) + " +" + S.g1); }
         if (pred[1] && pred[1] === a[1] && firm(1)) { g += S.g2; parts.push("2º " + es(pred[1]) + " +" + S.g2); }
         if (pred[2] && pred[2] === a[2] && firm(2)) { g += S.g3; parts.push("3º " + es(pred[2]) + " +" + S.g3); }
+        if (pred[3] && pred[3] === a[3] && firm(3)) { g += (S.g4 || 0); parts.push("4º/último " + es(pred[3]) + " +" + (S.g4 || 0)); }
         if (pred[0] && dT(pred[0])) { g += S.qual; parts.push(es(pred[0]) + " clasifica +" + S.qual); }
         if (pred[1] && dT(pred[1])) { g += S.qual; parts.push(es(pred[1]) + " clasifica +" + S.qual); }
         if (a.length === 4 && (!ri || ri.every((x) => x && x.firm)) && pred[0] === a[0] && pred[1] === a[1] && pred[2] === a[2] && pred[3] === a[3]) { g += (S.groupExact || 0); parts.push("🎁 orden exacto 1º-4º +" + S.groupExact); }

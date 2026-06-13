@@ -335,6 +335,7 @@
       if (pred[0] && pred[0] === act[0] && firm(0)) total += S.g1;
       if (pred[1] && pred[1] === act[1] && firm(1)) total += S.g2;
       if (pred[2] && pred[2] === act[2] && firm(2)) total += S.g3;
+      if (pred[3] && pred[3] === act[3] && firm(3)) total += (S.g4 || 0);   // acertar el 4º / último del grupo
       if (pred[0] && defTop2(pred[0])) total += S.qual;
       if (pred[1] && defTop2(pred[1])) total += S.qual;
       if (act.length === 4 && allFirm && pred[0] === act[0] && pred[1] === act[1] && pred[2] === act[2] && pred[3] === act[3]) total += (S.groupExact || 0); // 🎁 bonus: orden completo del grupo (1º-4º), solo si está decidido
@@ -366,6 +367,7 @@
       if (pred[0] && pred[0] === act[0] && firm(0)) bd.grupos += S.g1;
       if (pred[1] && pred[1] === act[1] && firm(1)) bd.grupos += S.g2;
       if (pred[2] && pred[2] === act[2] && firm(2)) bd.grupos += S.g3;
+      if (pred[3] && pred[3] === act[3] && firm(3)) bd.grupos += (S.g4 || 0);   // acertar el 4º / último del grupo
       if (pred[0] && defTop2(pred[0])) bd.grupos += S.qual;
       if (pred[1] && defTop2(pred[1])) bd.grupos += S.qual;
       if (act.length === 4 && allFirm && pred[0] === act[0] && pred[1] === act[1] && pred[2] === act[2] && pred[3] === act[3]) bd.grupos += (S.groupExact || 0); // 🎁 bonus orden completo del grupo, solo si decidido
