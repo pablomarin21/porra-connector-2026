@@ -644,3 +644,23 @@ tr.clickrow.sel td{background:#e7f1ec}
   .tabs button{flex:1}
   .row2{grid-template-columns:1fr 1fr}
 }
+
+/* ===== Explicación de la puntuación (clasificación) ===== */
+.se-body{padding:4px 0 12px}
+.expl-box{margin-top:14px}
+.expl-h{font-weight:800;color:var(--green);font-size:.9rem;margin:6px 0}
+.expl-state{background:#f7faf8;border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+.expl-g{font-size:.82rem;padding:3px 0;border-bottom:1px dashed var(--line)}
+.expl-g:last-child{border-bottom:0}
+.expl-g.off{opacity:.5}
+.expl-person{background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:7px;overflow:hidden}
+.expl-person>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;font-size:.9rem}
+.expl-person>summary::-webkit-details-marker{display:none}
+.expl-person>summary::before{content:"▸";color:var(--muted);font-size:.8rem}
+.expl-person[open]>summary::before{content:"▾"}
+.expl-name{font-weight:800;color:#26342e}
+.expl-tot{color:var(--green);background:#eaf4ee;border-radius:999px;padding:2px 9px;font-size:.82rem}
+.expl-sum{font-size:.76rem;flex:1 1 100%}
+.expl-bits{padding:2px 12px 12px 28px;display:flex;flex-direction:column;gap:5px}
+.expl-bit{font-size:.82rem;color:#37463f;line-height:1.35}
+.expl-ic{display:inline-block;width:1.2em}

@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=24" />
+  <link rel="stylesheet" href="styles.css?v=25" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -556,6 +556,36 @@
     <p class="tiny muted" x-show="!boardLocked && ranked.length">👁️ Toca a un jugador para ver su <b>quiniela completa</b> (o entra en la pestaña <b>Quinielas</b>). «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del Mundial con la fuerza de cada selección. <span x-show="lockCountdown">⏳ Cierra en <b x-text="lockCountdown"></b>.</span></p>
     <p class="tiny muted" x-show="boardLocked && ranked.length">👁️ Toca a un jugador para ver su quiniela y el desglose. «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del resto del Mundial.</p>
 
+    <!-- EXPLICACIÓN DE LA PUNTUACIÓN (modelo MARCADORES) -->
+    <details class="scoring-explain expl-box" x-show="explain && explain.people && explain.people.length">
+      <summary>📊 Explicación de la puntuación — ¿por qué cada uno tiene sus puntos?</summary>
+      <div class="se-body">
+        <p class="tiny">En esta porra lo que más puntúa son los <b>MARCADORES</b> de los 72 partidos de grupos, y suma <b>EN DIRECTO</b> en cuanto cada partido acaba: si <b>clavas el marcador exacto</b> +<span x-text="settings.exact"></span> 🎯, y si solo aciertas <b>quién gana o el empate (1-X-2)</b> +<span x-text="settings.result"></span> ✅. Cuando un <b>grupo termina</b> se añade el <b>plus de orden</b> (1º +<span x-text="settings.g1"></span>, 2º +<span x-text="settings.g2"></span>, 3º +<span x-text="settings.g3"></span>, cada equipo que clasifica +<span x-text="settings.qual"></span>, y 🎁 +<span x-text="settings.groupExact"></span> si clavas el orden entero). Luego van los <b>terceros</b>, el <b>cuadro</b> de eliminatorias y las <b>especiales</b>. <span class="muted">Es provisional: cambia con cada partido.</span></p>
+
+        <div class="expl-state">
+          <div class="expl-h">📅 Cómo van los grupos</div>
+          <template x-for="g in (explain ? explain.groups : [])" :key="'eg'+g.L">
+            <div class="expl-g" :class="{off:!g.started}"><b x-text="'Grupo '+g.L"></b> · <span x-text="g.estado"></span><span class="muted" x-show="g.detalle" x-text="' — '+g.detalle"></span></div>
+          </template>
+        </div>
+
+        <div class="expl-h" style="margin-top:14px">👥 Por jugador <span class="muted tiny">(toca para ver el desglose)</span></div>
+        <template x-for="p in (explain ? explain.people : [])" :key="'ep'+p.id">
+          <details class="expl-person">
+            <summary>
+              <span class="expl-name" x-text="p.name"></span>
+              <b class="expl-tot" x-text="p.total+' pts'"></b>
+              <span class="expl-sum muted" x-text="p.summary"></span>
+            </summary>
+            <div class="expl-bits">
+              <template x-for="(bt,i) in p.bits" :key="'b'+p.id+i"><div class="expl-bit"><span class="expl-ic" x-text="bt.icon"></span> <span x-text="bt.text"></span></div></template>
+              <div class="expl-bit muted" x-show="!p.bits.length">Todavía no ha sumado puntos (ninguno de sus marcadores ha acertado aún).</div>
+            </div>
+          </details>
+        </template>
+      </div>
+    </details>
+
     <!-- DETALLE: quiniela de un participante -->
     <template x-if="det">
       <div class="detail card">
@@ -1063,10 +1093,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=24"></script>
-  <script src="engine.js?v=24"></script>
+  <script src="data.js?v=25"></script>
+  <script src="engine.js?v=25"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=24"></script>
+  <script src="app.js?v=25"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
