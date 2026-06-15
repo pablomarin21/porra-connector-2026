@@ -11,6 +11,27 @@ const D = window.PORRA_DATA;
 const Eng = window.PorraEngine;
 
 const ALL_TEAMS = [].concat(...D.GROUP_LETTERS.map((L) => D.GROUPS[L]));
+// Sedes del Mundial 2026: zona horaria local + temperatura típica (máx. diurna jun-jul, °C).
+const VENUES = {
+  "atlanta": { tz: "America/New_York", temp: 31 }, "miami": { tz: "America/New_York", temp: 32 },
+  "miami gardens": { tz: "America/New_York", temp: 32 }, "east rutherford": { tz: "America/New_York", temp: 28 },
+  "new york": { tz: "America/New_York", temp: 28 }, "philadelphia": { tz: "America/New_York", temp: 30 },
+  "foxborough": { tz: "America/New_York", temp: 26 }, "boston": { tz: "America/New_York", temp: 26 },
+  "kansas city": { tz: "America/Chicago", temp: 31 }, "arlington": { tz: "America/Chicago", temp: 35 },
+  "dallas": { tz: "America/Chicago", temp: 35 }, "houston": { tz: "America/Chicago", temp: 34 },
+  "inglewood": { tz: "America/Los_Angeles", temp: 26 }, "los angeles": { tz: "America/Los_Angeles", temp: 26 },
+  "santa clara": { tz: "America/Los_Angeles", temp: 26 }, "san francisco": { tz: "America/Los_Angeles", temp: 26 },
+  "seattle": { tz: "America/Los_Angeles", temp: 23 },
+  "mexico city": { tz: "America/Mexico_City", temp: 24 }, "ciudad de mexico": { tz: "America/Mexico_City", temp: 24 },
+  "guadalajara": { tz: "America/Mexico_City", temp: 27 }, "zapopan": { tz: "America/Mexico_City", temp: 27 },
+  "monterrey": { tz: "America/Monterrey", temp: 34 }, "guadalupe": { tz: "America/Monterrey", temp: 34 },
+  "toronto": { tz: "America/Toronto", temp: 26 }, "vancouver": { tz: "America/Vancouver", temp: 21 },
+};
+function venueInfo(city) {
+  if (!city) return null;
+  const k = String(city).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  return VENUES[k] || null;
+}
 const TEAM_GROUP = (function () { const m = {}; for (const L of D.GROUP_LETTERS) for (const t of D.GROUPS[L]) m[t] = L; return m; })();
 // Par de selecciones (orden indiferente) → código de su partido de grupo. Para mostrar "lo que puso cada uno" por partido.
 const PAIR_FX = (function () { const m = {}; for (const fx of D.GROUP_FIXTURES) m[[fx.home, fx.away].slice().sort().join("|")] = fx.code; return m; })();
@@ -108,6 +129,17 @@ window.porraApp = function () {
     // --- fechas/horas en hora de España (Madrid) ---
     _d(iso) { if (!iso) return null; let s = String(iso); if (/T\d\d:\d\dZ$/.test(s)) s = s.replace("Z", ":00Z"); const d = new Date(s); return isNaN(d.getTime()) ? null : d; },
     madridTime(iso) { const d = this._d(iso); if (!d) return ""; try { return new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", hour12: false }).format(d); } catch (e) { return ""; } },
+    localTimeAt(iso, tz) { const d = this._d(iso); if (!d || !tz) return ""; try { return new Intl.DateTimeFormat("es-ES", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(d); } catch (e) { return ""; } },
+    estTempC(iso, vi) {
+      if (!vi) return null;
+      const lt = this.localTimeAt(iso, vi.tz); const h = lt ? parseInt(lt.slice(0, 2), 10) : 15;
+      let adj = 0;
+      if (h >= 12 && h <= 16) adj = 0;
+      else if ((h >= 9 && h < 12) || (h >= 17 && h < 19)) adj = -3;
+      else if (h >= 19 && h < 22) adj = -6;
+      else adj = -8;
+      return vi.temp + adj;
+    },
     madridDayLong(iso) { const d = this._d(iso); if (!d) return ""; try { const s = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "long", day: "numeric", month: "long" }).format(d); return s.charAt(0).toUpperCase() + s.slice(1); } catch (e) { return ""; } },
     madridDayShort(iso) { const d = this._d(iso); if (!d) return ""; try { return new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "short", day: "numeric", month: "short" }).format(d); } catch (e) { return ""; } },
     _dayKey(iso) { const d = this._d(iso); if (!d) return (iso || "").slice(0, 10); try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); } catch (e) { return (iso || "").slice(0, 10); } },
@@ -121,8 +153,10 @@ window.porraApp = function () {
         const st = (ev.status && ev.status.type) || {};
         const cH = D.espnCanon(H.team.displayName), cA = D.espnCanon(A.team.displayName);
         const venue = (comp.venue && comp.venue.address && comp.venue.address.city) ? String(comp.venue.address.city).split(",")[0].trim() : ((comp.venue && comp.venue.fullName) || "");
+        const vi = venueInfo(venue);
         out.push({
           id: ev.id, ts: this._d(ev.date) ? this._d(ev.date).getTime() : 0, venue,
+          localTime: vi ? this.localTimeAt(ev.date, vi.tz) : "", tempC: vi ? this.estTempC(ev.date, vi) : null,
           time: this.madridTime(ev.date), dayShort: this.madridDayShort(ev.date), dayLong: this.madridDayLong(ev.date), dayKey: this._dayKey(ev.date),
           hCanon: cH, aCanon: cA,
           hName: cH ? D.es(cH) : this.koLabel(H.team.displayName), hFlag: cH ? D.flag(cH) : "🏳️",
@@ -786,6 +820,7 @@ window.porraApp = function () {
         cuartos: ord(dp.cuartos), octavos: ord(dp.octavos),
         groups: e.picks.groups || {}, thirds: e.picks.thirds || [], bd,
         extras: e.picks.extras || {}, ex, total: bd.total + ex.total,
+        bits: this._explainBits(e.picks, oc, this.settings, bd, ex),   // justificación punto a punto
       };
     },
     refreshLiveBracket() {

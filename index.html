@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=26" />
+  <link rel="stylesheet" href="styles.css?v=27" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -613,6 +613,17 @@
           </div>
         </template>
 
+        <!-- Justificación: qué ha acertado, punto a punto -->
+        <template x-if="boardLocked">
+          <div class="det-aciertos">
+            <p class="da-h">✅ Qué ha acertado <span class="muted">— de aquí salen sus <b x-text="det.total"></b> puntos</span></p>
+            <div class="da-bits">
+              <template x-for="(bt,i) in (det.bits||[])" :key="'db'+i"><div class="da-bit"><span class="da-ic" x-text="bt.icon"></span> <span x-text="bt.text"></span></div></template>
+              <div class="da-bit muted" x-show="!det.bits || !det.bits.length">Todavía no ha sumado puntos (sus marcadores aún no han acertado, o los grupos no han terminado).</div>
+            </div>
+          </div>
+        </template>
+
         <div class="qv">
           <div class="qv-champ">
             <small>Su campeón</small>
@@ -698,6 +709,17 @@
             <span x-text="'Final '+det.bd.final"></span>
             <span x-text="'Campeón '+det.bd.campeon"></span>
             <span class="bd-extra" x-show="det.ex.total" x-text="'⭐ Especiales '+det.ex.total"></span>
+          </div>
+        </template>
+
+        <!-- Justificación: qué ha acertado, punto a punto -->
+        <template x-if="boardLocked">
+          <div class="det-aciertos">
+            <p class="da-h">✅ Qué ha acertado <span class="muted">— de aquí salen sus <b x-text="det.total"></b> puntos</span></p>
+            <div class="da-bits">
+              <template x-for="(bt,i) in (det.bits||[])" :key="'db'+i"><div class="da-bit"><span class="da-ic" x-text="bt.icon"></span> <span x-text="bt.text"></span></div></template>
+              <div class="da-bit muted" x-show="!det.bits || !det.bits.length">Todavía no ha sumado puntos (sus marcadores aún no han acertado, o los grupos no han terminado).</div>
+            </div>
           </div>
         </template>
         <div class="qv">
@@ -805,7 +827,7 @@
           <template x-for="m in day.matches" :key="'cm'+m.id">
             <div class="cal-item">
               <div class="cal-row" :class="{live:m.live, done:m.done, tappable: matchFx(m)}" @click="toggleMatch(m)">
-                <span class="cal-time"><b x-text="m.live?'🔴':(m.done?'FIN':m.time)"></b><small class="cal-venue" x-text="m.venue" x-show="m.venue"></small></span>
+                <span class="cal-time"><b x-text="m.live?'🔴':(m.done?'FIN':m.time)"></b><small class="cal-mad" x-show="!m.live && !m.done">hora España</small><small class="cal-venue" x-show="m.venue">📍 <span x-text="m.venue"></span><span x-show="m.localTime"> · 🕐 <b x-text="m.localTime"></b> local</span><span class="cal-temp" x-show="m.tempC!=null"> · 🌡️ <span x-text="m.tempC"></span>°C</span></small></span>
                 <span class="cal-t home"><span class="tn" x-text="m.hName"></span> <span class="flag" x-text="m.hFlag"></span></span>
                 <span class="cal-sc" x-text="m.pre ? 'vs' : (m.hs+' - '+m.as)"></span>
                 <span class="cal-t away"><span class="flag" x-text="m.aFlag"></span> <span class="tn" x-text="m.aName"></span></span>
@@ -1093,10 +1115,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=26"></script>
-  <script src="engine.js?v=26"></script>
+  <script src="data.js?v=27"></script>
+  <script src="engine.js?v=27"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=26"></script>
+  <script src="app.js?v=27"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
