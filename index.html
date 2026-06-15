@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=28" />
+  <link rel="stylesheet" href="styles.css?v=29" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -810,7 +810,7 @@
       <button :class="{on: rTab==='cal'}" @click="rTab='cal'">📅 Calendario</button>
       <button :class="{on: rTab==='groups'}" @click="rTab='groups'">📊 Grupos</button>
       <button :class="{on: rTab==='ko'}" @click="rTab='ko'">🏆 Eliminatorias</button>
-      <button :class="{on: rTab==='scorers'}" @click="rTab='scorers'">⚽ Goleadores</button>
+      <button :class="{on: rTab==='scorers'}" @click="rTab='scorers'; loadAssists()">⚽ Goleadores</button>
     </div>
 
     <!-- Calendario: todos los partidos con hora de España (Madrid) -->
@@ -898,21 +898,36 @@
 
     <!-- ⚽ GOLEADORES Y ASISTENTES en directo -->
     <div x-show="rTab==='scorers'" class="rscorers">
-      <p class="muted tiny">En directo desde ESPN según se juegan los partidos.</p>
+      <p class="muted tiny">📡 En directo desde ESPN según se juegan los partidos. 🏆 Quien acierte el <b>máximo goleador</b> (Bota de Oro) gana <b x-text="'+'+settings.pichichi"></b> y el <b>máximo asistente</b> <b x-text="'+'+settings.asistente"></b>.</p>
       <div class="sc-cols">
         <div class="sc-col">
-          <h3>⚽ Máximos goleadores</h3>
-          <template x-for="(s,i) in scorers" :key="'sc'+i">
-            <div class="sc-row"><span class="sc-pos" x-text="(i+1)"></span><span class="flag sc-fl" x-text="s.flag"></span><span class="sc-nm" x-text="s.name"></span><b class="sc-n" x-text="s.n"></b></div>
-          </template>
+          <div class="sc-head"><h3>⚽ Máximos goleadores</h3><small class="muted" x-show="scorers.length" x-text="scorers.length+' jugadores'"></small></div>
+          <div class="sc-table">
+            <template x-for="(s,i) in scorers" :key="'sc'+s.name+i">
+              <div class="sc-row" :class="{lead:i===0}">
+                <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
+                <span class="flag sc-fl" x-text="s.flag"></span>
+                <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team" x-show="s.team" x-text="s.team"></small></span>
+                <b class="sc-n"><span x-text="s.n"></span><small class="sc-pen" x-show="s.pen" :title="s.pen+' de penalti'" x-text="' '+s.pen+'P'"></small></b>
+              </div>
+            </template>
+          </div>
           <p class="muted tiny" x-show="!scorers.length">Aún no hay goles. Aparecerán aquí en directo cuando empiece el Mundial. 🥅</p>
         </div>
         <div class="sc-col">
-          <h3>🅰️ Máximos asistentes</h3>
-          <template x-for="(s,i) in assisters" :key="'as'+i">
-            <div class="sc-row"><span class="sc-pos" x-text="(i+1)"></span><span class="flag sc-fl" x-text="s.flag"></span><span class="sc-nm" x-text="s.name"></span><b class="sc-n" x-text="s.n"></b></div>
-          </template>
-          <p class="muted tiny" x-show="!assisters.length">Las asistencias aparecerán según ESPN las publique durante los partidos.</p>
+          <div class="sc-head"><h3>🅰️ Máximos asistentes</h3><small class="muted" x-show="assistsLoading">cargando…</small><small class="muted" x-show="!assistsLoading && assisters.length" x-text="assisters.length+' jugadores'"></small></div>
+          <div class="sc-table">
+            <template x-for="(s,i) in assisters" :key="'as'+s.name+i">
+              <div class="sc-row" :class="{lead:i===0}">
+                <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
+                <span class="flag sc-fl" x-text="s.flag"></span>
+                <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team" x-show="s.team" x-text="s.team"></small></span>
+                <b class="sc-n" x-text="s.n"></b>
+              </div>
+            </template>
+          </div>
+          <p class="muted tiny" x-show="assistsLoading && !assisters.length">Cargando asistencias desde ESPN… 🅰️</p>
+          <p class="muted tiny" x-show="!assistsLoading && !assisters.length">Las asistencias aparecerán según se jueguen los partidos.</p>
         </div>
       </div>
     </div>
@@ -1115,10 +1130,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=28"></script>
-  <script src="engine.js?v=28"></script>
+  <script src="data.js?v=29"></script>
+  <script src="engine.js?v=29"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=28"></script>
+  <script src="app.js?v=29"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

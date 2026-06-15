@@ -677,3 +677,13 @@ tr.clickrow.sel td{background:#e7f1ec}
 .cal-venue b{color:#3a4a42}
 .cal-temp{white-space:nowrap}
 .cal-fc{color:#1f8f4e;font-weight:700}
+
+/* ===== Tabla de goleadores/asistentes (mejorada) ===== */
+.sc-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 0 6px}
+.sc-head h3{margin:0;color:var(--green);font-size:1rem}
+.sc-head small{font-size:.72rem}
+.sc-nm{display:flex;flex-direction:column;line-height:1.15}
+.sc-team{font-size:.68rem;color:var(--muted);font-weight:500}
+.sc-pen{font-size:.66rem;color:var(--muted);font-weight:700}
+.sc-row.lead{background:#fff8ec;border-radius:8px;margin:0 -4px;padding-left:6px;padding-right:6px}
+.sc-row.lead .sc-pos{font-size:1rem}
