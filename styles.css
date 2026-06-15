@@ -676,3 +676,4 @@ tr.clickrow.sel td{background:#e7f1ec}
 .cal-venue{display:block;font-size:.68rem;color:var(--muted);line-height:1.3;margin-top:2px}
 .cal-venue b{color:#3a4a42}
 .cal-temp{white-space:nowrap}
+.cal-fc{color:#1f8f4e;font-weight:700}

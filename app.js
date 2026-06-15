@@ -13,19 +13,24 @@ const Eng = window.PorraEngine;
 const ALL_TEAMS = [].concat(...D.GROUP_LETTERS.map((L) => D.GROUPS[L]));
 // Sedes del Mundial 2026: zona horaria local + temperatura típica (máx. diurna jun-jul, °C).
 const VENUES = {
-  "atlanta": { tz: "America/New_York", temp: 31 }, "miami": { tz: "America/New_York", temp: 32 },
-  "miami gardens": { tz: "America/New_York", temp: 32 }, "east rutherford": { tz: "America/New_York", temp: 28 },
-  "new york": { tz: "America/New_York", temp: 28 }, "philadelphia": { tz: "America/New_York", temp: 30 },
-  "foxborough": { tz: "America/New_York", temp: 26 }, "boston": { tz: "America/New_York", temp: 26 },
-  "kansas city": { tz: "America/Chicago", temp: 31 }, "arlington": { tz: "America/Chicago", temp: 35 },
-  "dallas": { tz: "America/Chicago", temp: 35 }, "houston": { tz: "America/Chicago", temp: 34 },
-  "inglewood": { tz: "America/Los_Angeles", temp: 26 }, "los angeles": { tz: "America/Los_Angeles", temp: 26 },
-  "santa clara": { tz: "America/Los_Angeles", temp: 26 }, "san francisco": { tz: "America/Los_Angeles", temp: 26 },
-  "seattle": { tz: "America/Los_Angeles", temp: 23 },
-  "mexico city": { tz: "America/Mexico_City", temp: 24 }, "ciudad de mexico": { tz: "America/Mexico_City", temp: 24 },
-  "guadalajara": { tz: "America/Mexico_City", temp: 27 }, "zapopan": { tz: "America/Mexico_City", temp: 27 },
-  "monterrey": { tz: "America/Monterrey", temp: 34 }, "guadalupe": { tz: "America/Monterrey", temp: 34 },
-  "toronto": { tz: "America/Toronto", temp: 26 }, "vancouver": { tz: "America/Vancouver", temp: 21 },
+  // EE.UU. Este (ET)
+  "atlanta": { tz: "America/New_York", temp: 31, lat: 33.755, lon: -84.401 }, "miami": { tz: "America/New_York", temp: 32, lat: 25.958, lon: -80.239 },
+  "miami gardens": { tz: "America/New_York", temp: 32, lat: 25.958, lon: -80.239 }, "east rutherford": { tz: "America/New_York", temp: 28, lat: 40.814, lon: -74.074 },
+  "new york": { tz: "America/New_York", temp: 28, lat: 40.814, lon: -74.074 }, "philadelphia": { tz: "America/New_York", temp: 30, lat: 39.901, lon: -75.168 },
+  "foxborough": { tz: "America/New_York", temp: 26, lat: 42.091, lon: -71.264 }, "boston": { tz: "America/New_York", temp: 26, lat: 42.091, lon: -71.264 },
+  // EE.UU. Centro (CT)
+  "kansas city": { tz: "America/Chicago", temp: 31, lat: 39.049, lon: -94.484 }, "arlington": { tz: "America/Chicago", temp: 35, lat: 32.747, lon: -97.093 },
+  "dallas": { tz: "America/Chicago", temp: 35, lat: 32.747, lon: -97.093 }, "houston": { tz: "America/Chicago", temp: 34, lat: 29.685, lon: -95.411 },
+  // EE.UU. Oeste (PT)
+  "inglewood": { tz: "America/Los_Angeles", temp: 26, lat: 33.953, lon: -118.339 }, "los angeles": { tz: "America/Los_Angeles", temp: 26, lat: 33.953, lon: -118.339 },
+  "santa clara": { tz: "America/Los_Angeles", temp: 26, lat: 37.403, lon: -121.970 }, "san francisco": { tz: "America/Los_Angeles", temp: 26, lat: 37.403, lon: -121.970 },
+  "seattle": { tz: "America/Los_Angeles", temp: 23, lat: 47.595, lon: -122.332 },
+  // México
+  "mexico city": { tz: "America/Mexico_City", temp: 24, lat: 19.303, lon: -99.150 }, "ciudad de mexico": { tz: "America/Mexico_City", temp: 24, lat: 19.303, lon: -99.150 },
+  "guadalajara": { tz: "America/Mexico_City", temp: 27, lat: 20.681, lon: -103.463 }, "zapopan": { tz: "America/Mexico_City", temp: 27, lat: 20.681, lon: -103.463 },
+  "monterrey": { tz: "America/Monterrey", temp: 34, lat: 25.669, lon: -100.244 }, "guadalupe": { tz: "America/Monterrey", temp: 34, lat: 25.669, lon: -100.244 },
+  // Canadá
+  "toronto": { tz: "America/Toronto", temp: 26, lat: 43.633, lon: -79.418 }, "vancouver": { tz: "America/Vancouver", temp: 21, lat: 49.277, lon: -123.112 },
 };
 function venueInfo(city) {
   if (!city) return null;
@@ -83,7 +88,7 @@ window.porraApp = function () {
     letters: D.GROUP_LETTERS, allTeams: ALL_TEAMS.slice().sort((a, b) => D.es(a).localeCompare(D.es(b))),
     sideBets: D.SIDE_BETS,
     // en vivo (ESPN) + cierre automático
-    espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null,
+    espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null, forecasts: {}, forecastsAt: 0,
     extrasActualEdit: { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} },
     // datos
     entries: [], ranked: [], results: {}, rEdit: defaultREdit(), koEdit: defaultKoEdit(), liveBr: { teamsByMatch: {}, winnerOf: {}, complete: false },
@@ -140,6 +145,35 @@ window.porraApp = function () {
       else adj = -8;
       return vi.temp + adj;
     },
+    localHourKey(iso, tz) {
+      const d = this._d(iso); if (!d || !tz) return "";
+      try {
+        const g = {}; new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hour12: false }).formatToParts(d).forEach((p) => (g[p.type] = p.value));
+        const hh = g.hour === "24" ? "00" : g.hour;
+        return `${g.year}-${g.month}-${g.day}T${hh}`;
+      } catch (e) { return ""; }
+    },
+    async loadForecasts() {
+      if (this.forecastsAt && Date.now() - this.forecastsAt < 2 * 3600 * 1000) return;
+      const need = {};
+      for (const m of this.liveMatches) {
+        if (m.done || m.live || !m.venue) continue;
+        const vi = venueInfo(m.venue);
+        if (vi && vi.lat != null && !need[m.venue]) need[m.venue] = vi;
+      }
+      const cities = Object.keys(need); if (!cities.length) return;
+      const out = {};
+      await Promise.all(cities.map(async (city) => {
+        const vi = need[city];
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${vi.lat}&longitude=${vi.lon}&hourly=temperature_2m&timezone=auto&forecast_days=16`;
+          const j = await (await fetch(url)).json();
+          const t = j.hourly && j.hourly.time, tp = j.hourly && j.hourly.temperature_2m;
+          if (t && tp) { const map = {}; for (let i = 0; i < t.length; i++) map[String(t[i]).slice(0, 13)] = tp[i]; out[city] = map; }
+        } catch (e) { /* sigue con estimación */ }
+      }));
+      if (Object.keys(out).length) { this.forecasts = Object.assign({}, this.forecasts, out); this.forecastsAt = Date.now(); }
+    },
     madridDayLong(iso) { const d = this._d(iso); if (!d) return ""; try { const s = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "long", day: "numeric", month: "long" }).format(d); return s.charAt(0).toUpperCase() + s.slice(1); } catch (e) { return ""; } },
     madridDayShort(iso) { const d = this._d(iso); if (!d) return ""; try { return new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "short", day: "numeric", month: "short" }).format(d); } catch (e) { return ""; } },
     _dayKey(iso) { const d = this._d(iso); if (!d) return (iso || "").slice(0, 10); try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); } catch (e) { return (iso || "").slice(0, 10); } },
@@ -154,9 +188,14 @@ window.porraApp = function () {
         const cH = D.espnCanon(H.team.displayName), cA = D.espnCanon(A.team.displayName);
         const venue = (comp.venue && comp.venue.address && comp.venue.address.city) ? String(comp.venue.address.city).split(",")[0].trim() : ((comp.venue && comp.venue.fullName) || "");
         const vi = venueInfo(venue);
+        let tempC = vi ? this.estTempC(ev.date, vi) : null, tempReal = false;
+        if (vi) {
+          const fc = this.forecasts && this.forecasts[venue];
+          if (fc) { const k = this.localHourKey(ev.date, vi.tz); if (k && fc[k] != null) { tempC = Math.round(fc[k]); tempReal = true; } }
+        }
         out.push({
           id: ev.id, ts: this._d(ev.date) ? this._d(ev.date).getTime() : 0, venue,
-          localTime: vi ? this.localTimeAt(ev.date, vi.tz) : "", tempC: vi ? this.estTempC(ev.date, vi) : null,
+          localTime: vi ? this.localTimeAt(ev.date, vi.tz) : "", tempC, tempReal,
           time: this.madridTime(ev.date), dayShort: this.madridDayShort(ev.date), dayLong: this.madridDayLong(ev.date), dayKey: this._dayKey(ev.date),
           hCanon: cH, aCanon: cA,
           hName: cH ? D.es(cH) : this.koLabel(H.team.displayName), hFlag: cH ? D.flag(cH) : "🏳️",
@@ -886,7 +925,7 @@ window.porraApp = function () {
       this.explain = this.buildExplain();
       this.probBusy = false;
     },
-    openResults() { this.tab = "results"; this.fetchEspn(false); this.loadEntries({ recompute: false }); },
+    openResults() { this.tab = "results"; this.fetchEspn(false).then(() => this.loadForecasts()).catch(() => {}); this.loadEntries({ recompute: false }); },
     async refreshBoard() { await this.loadResults(); await this.loadEntries(); },
     recomputeRanking() {
       if (this.usingServerBoard) { if (this.selectedId) this.det = this._computeDetail(this.selectedId); return; }
