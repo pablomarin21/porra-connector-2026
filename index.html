@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=29" />
+  <link rel="stylesheet" href="styles.css?v=30" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -31,6 +31,7 @@
           <button :class="{active: tab==='quinielas'}" @click="openQuinielas()">Quinielas</button>
           <button :class="{active: tab==='play'}" @click="tab='play'">Mi Porra</button>
           <button :class="{active: tab==='results'}" @click="openResults()">Resultados</button>
+          <button :class="{active: tab==='goals'}" @click="openGoals()">⚽ Goleadores</button>
           <button :class="{active: tab==='admin'}" @click="tab='admin'">Admin</button>
         </nav>
       </template>
@@ -810,7 +811,6 @@
       <button :class="{on: rTab==='cal'}" @click="rTab='cal'">📅 Calendario</button>
       <button :class="{on: rTab==='groups'}" @click="rTab='groups'">📊 Grupos</button>
       <button :class="{on: rTab==='ko'}" @click="rTab='ko'">🏆 Eliminatorias</button>
-      <button :class="{on: rTab==='scorers'}" @click="rTab='scorers'; loadAssists()">⚽ Goleadores</button>
     </div>
 
     <!-- Calendario: todos los partidos con hora de España (Madrid) -->
@@ -896,42 +896,6 @@
       </template>
     </div>
 
-    <!-- ⚽ GOLEADORES Y ASISTENTES en directo -->
-    <div x-show="rTab==='scorers'" class="rscorers">
-      <p class="muted tiny">📡 En directo desde ESPN según se juegan los partidos. 🏆 Quien acierte el <b>máximo goleador</b> (Bota de Oro) gana <b x-text="'+'+settings.pichichi"></b> y el <b>máximo asistente</b> <b x-text="'+'+settings.asistente"></b>.</p>
-      <div class="sc-cols">
-        <div class="sc-col">
-          <div class="sc-head"><h3>⚽ Máximos goleadores</h3><small class="muted" x-show="scorers.length" x-text="scorers.length+' jugadores'"></small></div>
-          <div class="sc-table">
-            <template x-for="(s,i) in scorers" :key="'sc'+s.name+i">
-              <div class="sc-row" :class="{lead:i===0}">
-                <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
-                <span class="flag sc-fl" x-text="s.flag"></span>
-                <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team" x-show="s.team" x-text="s.team"></small></span>
-                <b class="sc-n"><span x-text="s.n"></span><small class="sc-pen" x-show="s.pen" :title="s.pen+' de penalti'" x-text="' '+s.pen+'P'"></small></b>
-              </div>
-            </template>
-          </div>
-          <p class="muted tiny" x-show="!scorers.length">Aún no hay goles. Aparecerán aquí en directo cuando empiece el Mundial. 🥅</p>
-        </div>
-        <div class="sc-col">
-          <div class="sc-head"><h3>🅰️ Máximos asistentes</h3><small class="muted" x-show="assistsLoading">cargando…</small><small class="muted" x-show="!assistsLoading && assisters.length" x-text="assisters.length+' jugadores'"></small></div>
-          <div class="sc-table">
-            <template x-for="(s,i) in assisters" :key="'as'+s.name+i">
-              <div class="sc-row" :class="{lead:i===0}">
-                <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
-                <span class="flag sc-fl" x-text="s.flag"></span>
-                <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team" x-show="s.team" x-text="s.team"></small></span>
-                <b class="sc-n" x-text="s.n"></b>
-              </div>
-            </template>
-          </div>
-          <p class="muted tiny" x-show="assistsLoading && !assisters.length">Cargando asistencias desde ESPN… 🅰️</p>
-          <p class="muted tiny" x-show="!assistsLoading && !assisters.length">Las asistencias aparecerán según se jueguen los partidos.</p>
-        </div>
-      </div>
-    </div>
-
     <div x-show="rTab==='ko'" class="rko">
       <p class="muted" x-show="!koReady">El cuadro de eliminatorias se mostrará cuando termine la fase de grupos.</p>
       <template x-if="koReady">
@@ -950,6 +914,59 @@
         </div></div>
       </template>
     </div>
+  </section>
+
+  <!-- ===================== GOLEADORES / ASISTENTES / PORTEROS ===================== -->
+  <section x-show="view==='pool' && tab==='goals'" class="goals-sec">
+    <h2 class="gs-title">⚽ Goleadores, asistentes y porteros</h2>
+    <p class="muted tiny gs-sub">📡 En directo desde ESPN según se juegan los partidos. 🏆 En la porra, quien acierte el <b>máximo goleador</b> (Bota de Oro) gana <b x-text="'+'+settings.pichichi"></b> y el <b>máximo asistente</b> <b x-text="'+'+settings.asistente"></b>. <button class="btn mini ghost" @click="openGoals()" :disabled="assistsLoading"><span x-show="!assistsLoading">↻ actualizar</span><span x-show="assistsLoading">…</span></button></p>
+    <div class="sc-cols sc3">
+      <div class="sc-col">
+        <div class="sc-head"><h3>⚽ Máximos goleadores</h3><small class="muted" x-show="scorers.length" x-text="scorers.length+' jug.'"></small></div>
+        <div class="sc-table">
+          <template x-for="(s,i) in scorers" :key="'sc'+s.name+i">
+            <div class="sc-row" :class="{lead:i===0}">
+              <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
+              <span class="flag sc-fl" x-text="s.flag"></span>
+              <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team" x-show="s.team" x-text="s.team"></small></span>
+              <b class="sc-n"><span x-text="s.n"></span><small class="sc-pen" x-show="s.pen" :title="s.pen+' de penalti'" x-text="' '+s.pen+'P'"></small></b>
+            </div>
+          </template>
+        </div>
+        <p class="muted tiny" x-show="!scorers.length">Aún no hay goles. Aparecerán aquí en directo. 🥅</p>
+      </div>
+      <div class="sc-col">
+        <div class="sc-head"><h3>🅰️ Máximos asistentes</h3><small class="muted" x-show="assistsLoading">cargando…</small><small class="muted" x-show="!assistsLoading && assisters.length" x-text="assisters.length+' jug.'"></small></div>
+        <div class="sc-table">
+          <template x-for="(s,i) in assisters" :key="'as'+s.name+i">
+            <div class="sc-row" :class="{lead:i===0}">
+              <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
+              <span class="flag sc-fl" x-text="s.flag"></span>
+              <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team" x-show="s.team" x-text="s.team"></small></span>
+              <b class="sc-n" x-text="s.n"></b>
+            </div>
+          </template>
+        </div>
+        <p class="muted tiny" x-show="assistsLoading && !assisters.length">Cargando asistencias… 🅰️</p>
+        <p class="muted tiny" x-show="!assistsLoading && !assisters.length">Aparecerán según se jueguen los partidos.</p>
+      </div>
+      <div class="sc-col">
+        <div class="sc-head"><h3>🧤 Porteros menos goleados</h3><small class="muted" x-show="assistsLoading">cargando…</small><small class="muted" x-show="!assistsLoading && porteros.length" x-text="porteros.length+' port.'"></small></div>
+        <div class="sc-table">
+          <template x-for="(s,i) in porteros" :key="'gk'+s.name+i">
+            <div class="sc-row" :class="{lead:i===0}">
+              <span class="sc-pos" x-text="i===0?'🥇':(i+1)"></span>
+              <span class="flag sc-fl" x-text="s.flag"></span>
+              <span class="sc-nm"><span x-text="s.name"></span><small class="sc-team"><span x-show="s.team" x-text="s.team+' · '"></span><span x-text="s.pj+(s.pj===1?' partido':' partidos')"></span><span x-show="s.cs" x-text="' · '+s.cs+' 🧤'"></span></small></span>
+              <b class="sc-n" :title="'goles encajados'"><span x-text="s.gc"></span><small class="sc-pen">GC</small></b>
+            </div>
+          </template>
+        </div>
+        <p class="muted tiny" x-show="assistsLoading && !porteros.length">Cargando porteros… 🧤</p>
+        <p class="muted tiny" x-show="!assistsLoading && !porteros.length">Aparecerán los porteros que hayan jugado.</p>
+      </div>
+    </div>
+    <p class="tiny muted" style="margin-top:10px">🧤 <b>Porteros</b>: ordenados por <b>goles encajados</b> (GC) de menos a más, entre los que <b>han jugado</b>; «🧤» = partidos sin encajar (portería a cero). Solo cuenta el portero titular de cada partido.</p>
   </section>
 
   <!-- ===================== ADMIN ===================== -->
@@ -1130,10 +1147,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=29"></script>
-  <script src="engine.js?v=29"></script>
+  <script src="data.js?v=30"></script>
+  <script src="engine.js?v=30"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=30"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

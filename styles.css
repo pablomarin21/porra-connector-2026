@@ -687,3 +687,11 @@ tr.clickrow.sel td{background:#e7f1ec}
 .sc-pen{font-size:.66rem;color:var(--muted);font-weight:700}
 .sc-row.lead{background:#fff8ec;border-radius:8px;margin:0 -4px;padding-left:6px;padding-right:6px}
 .sc-row.lead .sc-pos{font-size:1rem}
+
+/* ===== Sección Goleadores (pestaña principal) ===== */
+.goals-sec{max-width:1100px;margin:0 auto;padding:16px}
+.goals-sec .gs-title{color:var(--green);font-size:1.35rem;margin:2px 0 4px}
+.goals-sec .gs-sub{margin:0 0 12px;line-height:1.5}
+.goals-sec .sc-cols{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:640px){.goals-sec .sc-cols{grid-template-columns:1fr 1fr}}
+@media(min-width:1000px){.goals-sec .sc-cols.sc3{grid-template-columns:repeat(3,1fr)}}
