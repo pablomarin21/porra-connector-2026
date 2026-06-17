@@ -727,3 +727,11 @@ tr.clickrow.sel td{background:#e7f1ec}
 .pb-scen-prob b{color:var(--gold)}
 .path-box .muted{color:#9cc6b6}
 .pb-foot{margin-top:10px;display:flex;align-items:center;gap:8px;color:#9cc6b6!important}
+
+/* ===== Diferencias en grupos vs el rival (camino al podio) ===== */
+.pb-diffs .pb-diff-row{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;padding:6px 0;border-top:1px dashed rgba(255,255,255,.12);font-size:.85rem}
+.pb-diffs .pb-diff-row:first-of-type{border-top:0}
+.pb-diff-g{flex:0 0 auto;color:#bfe6d4;font-weight:700;white-space:nowrap}
+.pb-diff-txt{color:#e7f3ed}
+.pb-diff-txt b{color:#fff}
+.pb-diffs .flag{font-size:1rem}

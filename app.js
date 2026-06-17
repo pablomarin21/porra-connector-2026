@@ -415,6 +415,7 @@ window.porraApp = function () {
         const entries = (this.entries || []).filter((e) => e.picks).map((e) => ({
           id: e.id, name: (e.first_name + " " + e.last_name).trim(),
           dp: Eng.derivePicks(e.picks),
+          groups: e.picks.groups || {},
           champ: (e.picks.bracket && (e.picks.bracket[D.FINAL.match] || e.picks.bracket[String(D.FINAL.match)])) || null,
           extra: Eng.scoreExtras(e.picks.extras, this.extrasActual, S).total,
         }));
@@ -445,11 +446,25 @@ window.porraApp = function () {
         const myChampC = me.champ ? champs.find((c) => c.team === me.champ) : null;
         const myChampAlive = !!(myChampC && myChampC.n > 0);
         // rival a batir = el que vas justo por detrás en la clasificación actual (al que hay que adelantar para subir)
-        let rival = null;
+        let rival = null, groupDiffs = [];
         if (myRank && myRank > 1 && rankedList[myRank - 2]) {
           const rRow = rankedList[myRank - 2]; const rEnt = byId[rRow.id];
           rival = { name: rEnt ? rEnt.name : ((rRow.first_name || "") + " " + (rRow.last_name || "")).trim(), champ: rEnt && rEnt.champ ? D.es(rEnt.champ) : null, points: rRow.points, gap: myPoints != null ? (rRow.points - myPoints) : null };
+          const sbg = oc0 && oc0.standingsByGroup;
+          if (rEnt) {
+            for (const L of D.GROUP_LETTERS) {
+              const myG = me.groups && me.groups[L], rvG = rEnt.groups && rEnt.groups[L];
+              if (!myG || !rvG || myG.length < 4 || rvG.length < 4) continue;
+              const s = sbg && sbg[L];
+              if (s && s._complete) continue;
+              const myPos = {}, rvPos = {}; myG.forEach((t, i) => (myPos[t] = i)); rvG.forEach((t, i) => (rvPos[t] = i));
+              let up = null, down = null, maxD = 0, minD = 0;
+              for (const t of myG) { const d = ((rvPos[t] != null ? rvPos[t] : 3) - (myPos[t] != null ? myPos[t] : 3)); if (d > maxD) { maxD = d; up = t; } if (d < minD) { minD = d; down = t; } }
+              if (up && down && up !== down) groupDiffs.push({ L, up: D.es(up), upFlag: D.flag(up), down: D.es(down), downFlag: D.flag(down), started: !!(s && s.some && s.some((x) => x.pj > 0)) });
+            }
+          }
         }
+        groupDiffs = groupDiffs.slice(0, 6);
         const win = (myRow && typeof myRow.win === "number") ? myRow.win : meFirst / N;
         const podium = (myRow && typeof myRow.podium === "number") ? myRow.podium : mePod / N;
         this.pathAnalysis = {
@@ -457,7 +472,7 @@ window.porraApp = function () {
           isLeader: myRank === 1,
           myChamp: me.champ ? D.es(me.champ) : null, myChampFlag: me.champ ? D.flag(me.champ) : "",
           myChampAlive, myChampFirst: myChampAlive ? (cF[me.champ] || 0) / myChampC.n : null, myChampPod: myChampAlive ? (cP[me.champ] || 0) / myChampC.n : null,
-          scenarios, rival,
+          scenarios, rival, groupDiffs,
         };
       } finally { this.pathLoading = false; }
     },

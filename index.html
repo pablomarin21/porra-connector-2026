@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=32" />
+  <link rel="stylesheet" href="styles.css?v=33" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -588,6 +588,18 @@
             </div>
 
             <p class="pb-line rival" x-show="pathAnalysis.rival && !pathAnalysis.isLeader"><span class="pb-ic">🎯</span> <span><b>Tu rival a batir:</b> <span x-text="pathAnalysis.rival.name"></span><span x-show="pathAnalysis.rival.gap!=null && pathAnalysis.rival.gap>0" x-text="' (te saca '+pathAnalysis.rival.gap+' pts)'"></span><span x-show="pathAnalysis.rival.gap===0">, empatados a puntos</span>. Para adelantarle, tu cuadro tiene que puntuar más que el suyo<span x-show="pathAnalysis.rival.champ && pathAnalysis.rival.champ!==pathAnalysis.myChamp" x-text="' — sobre todo que tu campeón llegue más lejos que el suyo ('+pathAnalysis.rival.champ+')'"></span><span x-show="pathAnalysis.rival.champ && pathAnalysis.rival.champ===pathAnalysis.myChamp">. Ojo: tenéis el <b>mismo campeón</b>, así que os lo jugáis en el resto del cuadro y los grupos.</span><span x-show="!pathAnalysis.rival.champ || pathAnalysis.rival.champ!==pathAnalysis.myChamp">.</span></span></p>
+
+            <div class="pb-scen pb-diffs" x-show="pathAnalysis.rival && pathAnalysis.groupDiffs && pathAnalysis.groupDiffs.length">
+              <div class="pb-h">📋 Dónde discrepáis en los grupos (lo que te conviene para adelantarle)</div>
+              <template x-for="g in pathAnalysis.groupDiffs" :key="'pgd'+g.L">
+                <div class="pb-diff-row">
+                  <span class="pb-diff-g">Grupo <b x-text="g.L"></b> <small class="muted" x-text="g.started?'(en juego)':'(por jugar)'"></small></span>
+                  <span class="pb-diff-txt">te conviene que <span class="flag" x-text="g.upFlag"></span> <b x-text="g.up"></b> quede por delante de <span class="flag" x-text="g.downFlag"></span> <b x-text="g.down"></b></span>
+                </div>
+              </template>
+              <p class="tiny muted" style="margin-top:5px">Ahí pusisteis distinto el orden; si sale a tu favor, le recortas.</p>
+            </div>
+            <p class="pb-line muted" x-show="pathAnalysis.rival && pathAnalysis.groupDiffs && !pathAnalysis.groupDiffs.length"><span class="pb-ic">📋</span> <span>En los <b>grupos sin decidir</b> tú y <span x-text="pathAnalysis.rival.name"></span> pusisteis el mismo orden (o ya están cerrados): la diferencia se juega en el <b>cuadro</b>.</span></p>
 
             <p class="tiny muted pb-foot">🔄 Es una estimación que se recalcula con cada partido. <button class="btn mini ghost" @click="computePath()" :disabled="pathLoading">↻ recalcular</button></p>
           </div>
@@ -1190,10 +1202,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=32"></script>
-  <script src="engine.js?v=32"></script>
+  <script src="data.js?v=33"></script>
+  <script src="engine.js?v=33"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
