@@ -735,3 +735,8 @@ tr.clickrow.sel td{background:#e7f1ec}
 .pb-diff-txt{color:#e7f3ed}
 .pb-diff-txt b{color:#fff}
 .pb-diffs .flag{font-size:1rem}
+
+/* ===== Invitados (IA): sin número de posición ni podio ===== */
+.lr-pos.inv{color:var(--muted);opacity:.5}
+.invtag{font-size:.62rem;font-weight:700;color:#8a6d1f;background:#fbeecb;border:1px solid #f0dcae;border-radius:6px;padding:1px 6px;text-transform:uppercase;letter-spacing:.3px;margin-left:2px}
+.league-row.guest .lr-pos{opacity:.6}

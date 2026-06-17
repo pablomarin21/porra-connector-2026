@@ -114,6 +114,10 @@ window.porraApp = function () {
     es: (t) => D.es(t), flag: (t) => D.flag(t),
     rankClass(i) { return i < 2 ? "qual" : i === 2 ? "third" : "out"; },
     pct(x) { if (x == null) return "—"; const v = x * 100; return (v >= 9.95 ? v.toFixed(0) : v.toFixed(1)) + "%"; },
+    // Invitados (fuera de concurso): no ocupan número de posición ni podio. Solo los reales se numeran.
+    isGuest(e) { const n = (e && e.first_name) || ""; return n.startsWith("🤖") || n.startsWith("🎙"); },
+    get podium3() { return (this.ranked || []).filter((e) => !this.isGuest(e)).slice(0, 3); },
+    famPos(i) { const e = (this.ranked || [])[i]; if (!e || this.isGuest(e)) return null; let c = 0; for (let k = 0; k <= i; k++) { if (!this.isGuest(this.ranked[k])) c++; } return c; },
     groupFixtures(L) { return D.GROUP_FIXTURES.filter((f) => f.group === L); },
     scoreTxt(code) {
       const g = this.outcome && this.outcome.groupMap && this.outcome.groupMap[code];
