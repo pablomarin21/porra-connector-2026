@@ -73,7 +73,7 @@ window.porraApp = function () {
   return {
     // navegación
     view: "home", booting: true, loadFailed: false, tab: "play", step: 1, rTab: "cal", aTab: "groups", calFilter: "all", openMatch: null, brRound: 0,
-    teamProbs: {}, teamProbsSims: 0, scorers: [], assisters: [], porteros: [], _matchCache: {}, assistsLoading: false, assistsLoaded: false,
+    teamProbs: {}, teamProbsSims: 0, scorers: [], assisters: [], porteros: [], _matchCache: {}, assistsLoading: false, assistsLoaded: false, porteroDraft: "", porteroSaving: false,
     phase: "welcome", gIdx: 0, chosenNew: false, confirmClaim: null, claimFromName: false,
     wmode: "choose", entriesLoaded: false,
     // estado porra / jugador
@@ -84,12 +84,12 @@ window.porraApp = function () {
     showInstall: false, deferredPrompt: null,
     // pronósticos
     groups: emptyGroups(), scores: emptyScores(), derivedStandings: {}, thirds: [], _thirdsTouched: false, bracket: {}, _cols: [], _champion: null,
-    extras: { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} },
+    extras: { revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} },
     letters: D.GROUP_LETTERS, allTeams: ALL_TEAMS.slice().sort((a, b) => D.es(a).localeCompare(D.es(b))),
     sideBets: D.SIDE_BETS,
     // en vivo (ESPN) + cierre automático
     espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null, forecasts: {}, forecastsAt: 0, pathAnalysis: null, pathLoading: false,
-    extrasActualEdit: { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} },
+    extrasActualEdit: { revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} },
     // datos
     entries: [], ranked: [], results: {}, rEdit: defaultREdit(), koEdit: defaultKoEdit(), liveBr: { teamsByMatch: {}, winnerOf: {}, complete: false },
     // admin
@@ -145,6 +145,23 @@ window.porraApp = function () {
     },
     get goleadorBets() { return this._betSummary("pichichi", this.scorers); },
     get asistenteBets() { return this._betSummary("asistente", this.assisters); },
+    get porteroBets() { return this._betSummary("portero", this.porteros); },
+    // ---------- predicción "mejor portero" (campo nuevo): aviso en pantalla principal + guardar ----------
+    get myEntry() { const id = this.me && this.me.id; return id ? (this.entries || []).find((e) => e.id === id) : null; },
+    get myPortero() { const e = this.myEntry; const v = (e && e.picks && e.picks.extras && e.picks.extras.portero) || (this.extras && this.extras.portero) || ""; return (v || "").trim(); },
+    async savePortero() {
+      const v = (this.porteroDraft || "").trim();
+      if (!v || !this.me.id || !this.pool || this.porteroSaving) return;
+      this.porteroSaving = true;
+      try {
+        await this.rpc("porra2_set_portero", { p_code: this.pool.code, p_participant_id: this.me.id, p_portero: v });
+        if (this.extras) this.extras.portero = v;
+        const e = this.myEntry; if (e) { e.picks = e.picks || {}; e.picks.extras = Object.assign({}, e.picks.extras || {}, { portero: v }); }
+        this.porteroDraft = "";
+        this.toast("🧤 ¡Guardado! Tu mejor portero: " + v);
+      } catch (err) { this.toast(this.errMsg ? this.errMsg(err) : "No se pudo guardar", "err"); }
+      finally { this.porteroSaving = false; }
+    },
     groupFixtures(L) { return D.GROUP_FIXTURES.filter((f) => f.group === L); },
     scoreTxt(code) {
       const g = this.outcome && this.outcome.groupMap && this.outcome.groupMap[code];
@@ -427,6 +444,7 @@ window.porraApp = function () {
       if (ex.decepcion) bits.push({ icon: "💀", text: "Decepción acertada +" + ex.decepcion });
       if (ex.pichichi) bits.push({ icon: "⚽", text: "Pichichi acertado +" + ex.pichichi });
       if (ex.asistente) bits.push({ icon: "🅰️", text: "Asistente acertado +" + ex.asistente });
+      if (ex.portero) bits.push({ icon: "🧤", text: "Mejor portero acertado +" + ex.portero });
       if (ex.hattrick) bits.push({ icon: "🎩", text: "Hat-trick (apostó sí, y lo hubo) +" + ex.hattrick });
       if (ex.dobleRoja) bits.push({ icon: "🟥", text: "Doble roja (apostó sí, y la hubo) +" + ex.dobleRoja });
       return bits;
@@ -666,7 +684,7 @@ window.porraApp = function () {
     },
     async loadExtrasActual() {
       try { this.extrasActual = (await this.rpc("porra2_get_extras", {})) || {}; } catch (e) { this.extrasActual = {}; }
-      this.extrasActualEdit = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} }, this.extrasActual, { sidebets: Object.assign({}, this.extrasActual.sidebets || {}) });
+      this.extrasActualEdit = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} }, this.extrasActual, { sidebets: Object.assign({}, this.extrasActual.sidebets || {}) });
     },
     async saveExtrasActual() {
       this.busy = true;
@@ -698,7 +716,7 @@ window.porraApp = function () {
       const fullness = (o) => { if (!o) return -1; const pk = o.picks || o; let n = 0; const s = pk.scores || {}; for (const k in s) { const v = s[k]; if (Array.isArray(v) && v[0] != null && v[1] != null) n++; } return n + Object.keys(pk.bracket || {}).length; };
       const src = fullness(draft) > fullness(mine) ? draft : (mine || draft);
       this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this._thirdsTouched = false; this.bracket = {};
-      this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} };
+      this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} };
       this.me = { first: "", last: "", id: null, saved: false, finishGrace: false };
       if (mine) { this.me = { first: mine.first || "", last: mine.last || "", id: mine.id || null, saved: !!mine.id, finishGrace: false }; }
       else if (draft) { this.me.first = draft.first || ""; this.me.last = draft.last || ""; }
@@ -708,7 +726,7 @@ window.porraApp = function () {
         this.thirds = (p.thirds || []).slice();
         this._thirdsTouched = p.thirdsTouched != null ? !!p.thirdsTouched : (this.thirds.length > 0);
         this.bracket = Object.assign({}, p.bracket || {});
-        if (p.extras) this.extras = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} }, p.extras, { sidebets: Object.assign({}, p.extras.sidebets || {}) });
+        if (p.extras) this.extras = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} }, p.extras, { sidebets: Object.assign({}, p.extras.sidebets || {}) });
       }
       this.deriveGroups();
     },
@@ -924,7 +942,7 @@ window.porraApp = function () {
       this.thirds = (p.thirds || []).slice();
       this._thirdsTouched = p.thirdsTouched != null ? !!p.thirdsTouched : (this.thirds.length > 0);
       this.bracket = Object.assign({}, p.bracket || {});
-      this.extras = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} }, p.extras || {}, { sidebets: Object.assign({}, (p.extras && p.extras.sidebets) || {}) });
+      this.extras = Object.assign({ revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} }, p.extras || {}, { sidebets: Object.assign({}, (p.extras && p.extras.sidebets) || {}) });
       this.deriveGroups();
     },
     _persistMe() {
@@ -941,7 +959,7 @@ window.porraApp = function () {
       if (this.pool) { try { localStorage.removeItem("porra_me_" + this.pool.code); localStorage.removeItem("porra_draft_" + this.pool.code); } catch (e) {} }
       this.me = { first: "", last: "", id: null, saved: false };
       this.groups = emptyGroups(); this.scores = emptyScores(); this.thirds = []; this._thirdsTouched = false; this.bracket = {};
-      this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} };
+      this.extras = { revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} };
       this.deriveGroups();
       this.chosenNew = false; this.confirmClaim = null; this.claimFromName = false; this.wmode = "choose";
       this.selectedId = null; this.det = null;

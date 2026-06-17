@@ -387,16 +387,17 @@
   // -------- puntos de las predicciones especiales --------
   function scoreExtras(extras, actuals, S) {
     const e = extras || {}, a = actuals || {};
-    const bd = { revelacion: 0, decepcion: 0, pichichi: 0, asistente: 0, hattrick: 0, dobleRoja: 0 };
+    const bd = { revelacion: 0, decepcion: 0, pichichi: 0, asistente: 0, portero: 0, hattrick: 0, dobleRoja: 0 };
     const norm = (s) => (s || "").toString().trim().toLowerCase();
     if (a.revelacion && e.revelacion === a.revelacion) bd.revelacion += S.revelacion;
     if (a.decepcion && e.decepcion === a.decepcion) bd.decepcion += S.decepcion;
     if (a.pichichi && norm(e.pichichi) && norm(e.pichichi) === norm(a.pichichi)) bd.pichichi += S.pichichi;
     if (a.asistente && norm(e.asistente) && norm(e.asistente) === norm(a.asistente)) bd.asistente += S.asistente;
+    if (a.portero && norm(e.portero) && norm(e.portero) === norm(a.portero)) bd.portero += (S.portero || 0);
     const sb = e.sidebets || {}, asb = a.sidebets || {};
     if (asb.hattrick && sb.hattrick === asb.hattrick) bd.hattrick += S.hattrick;
     if (asb.dobleRoja && sb.dobleRoja === asb.dobleRoja) bd.dobleRoja += S.dobleRoja;
-    bd.total = bd.revelacion + bd.decepcion + bd.pichichi + bd.asistente + bd.hattrick + bd.dobleRoja;
+    bd.total = bd.revelacion + bd.decepcion + bd.pichichi + bd.asistente + bd.portero + bd.hattrick + bd.dobleRoja;
     return bd;
   }
 

@@ -180,7 +180,7 @@ window.PORRA_DATA = (function () {
     finalists: 15,  // por cada finalista
     champion: 25,   // por acertar el campeón
     // --- predicciones especiales (puntos extra) ---
-    revelacion: 8, decepcion: 8, pichichi: 12, asistente: 10, hattrick: 5, dobleRoja: 5,
+    revelacion: 8, decepcion: 8, pichichi: 12, asistente: 10, portero: 10, hattrick: 5, dobleRoja: 5,
   };
 
   // --- Cierre automático: 1 hora antes del primer partido (saque 19:00 UTC, jue 11 jun) ---

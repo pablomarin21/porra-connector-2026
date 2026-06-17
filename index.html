@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=36" />
+  <link rel="stylesheet" href="styles.css?v=37" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -470,6 +470,19 @@
 
   <!-- ===================== CLASIFICACIÓN ===================== -->
   <section x-show="view==='pool' && tab==='leaderboard'" class="board">
+    <!-- Predicción nueva: mejor portero (aparece hasta que la rellenas; al guardar se va) -->
+    <div class="portero-prompt" x-show="me.id && pool && !myPortero">
+      <div class="pp-ic">🧤</div>
+      <div class="pp-body">
+        <p class="pp-h">¡Predicción nueva! ¿Quién será el <b>mejor portero</b> del Mundial?</p>
+        <p class="pp-sub">La hemos añadido ahora. Escríbelo y se guarda en tu porra (suma <b>+10</b> si aciertas).</p>
+        <div class="pp-form">
+          <input type="text" x-model="porteroDraft" maxlength="40" placeholder="Ej: Unai Simón" @keydown.enter="savePortero()">
+          <button class="btn primary" @click="savePortero()" :disabled="porteroSaving || !porteroDraft.trim()"><span x-show="!porteroSaving">Guardar</span><span x-show="porteroSaving">…</span></button>
+        </div>
+      </div>
+    </div>
+
     <div class="step-head">
       <h2>🏆 Clasificación</h2>
       <p class="muted">La clasificación de la porra. <span x-show="probBusy">⏳ calculando probabilidades…</span></p>
@@ -688,7 +701,7 @@
             <span class="qchip sm" x-show="det.extras.revelacion">✨ <span x-text="es(det.extras.revelacion)"></span></span>
             <span class="qchip sm" x-show="det.extras.decepcion">💀 <span x-text="es(det.extras.decepcion)"></span></span>
             <span class="qchip sm" x-show="det.extras.pichichi">⚽ <span x-text="det.extras.pichichi"></span></span>
-            <span class="qchip sm" x-show="det.extras.asistente">🅰️ <span x-text="det.extras.asistente"></span></span>
+            <span class="qchip sm" x-show="det.extras.asistente">🅰️ <span x-text="det.extras.asistente"></span></span><span class="qchip sm" x-show="det.extras.portero">🧤 <span x-text="det.extras.portero"></span></span>
             <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.hattrick" x-text="'Hat-trick: '+(det.extras.sidebets?det.extras.sidebets.hattrick:'')"></span>
             <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.dobleRoja" x-text="'Doble roja: '+(det.extras.sidebets?det.extras.sidebets.dobleRoja:'')"></span>
           </div>
@@ -786,7 +799,7 @@
             <span class="qchip sm" x-show="det.extras.revelacion">✨ <span x-text="es(det.extras.revelacion)"></span></span>
             <span class="qchip sm" x-show="det.extras.decepcion">💀 <span x-text="es(det.extras.decepcion)"></span></span>
             <span class="qchip sm" x-show="det.extras.pichichi">⚽ <span x-text="det.extras.pichichi"></span></span>
-            <span class="qchip sm" x-show="det.extras.asistente">🅰️ <span x-text="det.extras.asistente"></span></span>
+            <span class="qchip sm" x-show="det.extras.asistente">🅰️ <span x-text="det.extras.asistente"></span></span><span class="qchip sm" x-show="det.extras.portero">🧤 <span x-text="det.extras.portero"></span></span>
             <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.hattrick" x-text="'Hat-trick: '+(det.extras.sidebets?det.extras.sidebets.hattrick:'')"></span>
             <span class="qchip sm" x-show="det.extras.sidebets&&det.extras.sidebets.dobleRoja" x-text="'Doble roja: '+(det.extras.sidebets?det.extras.sidebets.dobleRoja:'')"></span>
           </div>
@@ -1039,7 +1052,16 @@
         </div>
         <p class="muted tiny" x-show="assistsLoading && !porteros.length">Cargando porteros… 🧤</p>
         <p class="muted tiny" x-show="!assistsLoading && !porteros.length">Aparecerán los porteros que hayan jugado.</p>
-        <p class="sc-bets-note">ℹ️ En esta porra no se apuesta por el portero — esta tabla es solo para ver quién encaja menos.</p>
+        <div class="sc-bets" x-show="porteroBets.length">
+          <div class="sc-bets-h">📋 Vuestra apuesta al mejor portero</div>
+          <template x-for="g in porteroBets" :key="'pb'+g.pick">
+            <div class="sc-bet-row" :class="{hit:g.live}">
+              <span class="sc-bet-pick"><b x-text="g.pick"></b><span class="sc-bet-live" x-show="g.live" x-text="g.live ? (' · va '+g.live.rank+'º ('+g.live.n+' GC)') : ''"></span></span>
+              <span class="sc-bet-who" x-text="g.players.join(', ')"></span>
+            </div>
+          </template>
+        </div>
+        <p class="muted tiny" x-show="!porteroBets.length">(Aún nadie ha apostado por el mejor portero — sale el aviso en Clasificación.)</p>
       </div>
     </div>
     <p class="tiny muted" style="margin-top:10px">🧤 <b>Porteros</b>: ordenados por <b>goles encajados</b> (GC) de menos a más, entre los que <b>han jugado</b>; «🧤» = partidos sin encajar (portería a cero). Solo cuenta el portero titular de cada partido.</p>
@@ -1092,6 +1114,7 @@
             </div>
             <div class="extra-card"><label>⚽ Máximo goleador</label><input x-model="extrasActualEdit.pichichi" placeholder="Nombre del jugador" /></div>
             <div class="extra-card"><label>🅰️ Máximo asistente</label><input x-model="extrasActualEdit.asistente" placeholder="Nombre del jugador" /></div>
+            <div class="extra-card"><label>🧤 Mejor portero</label><input x-model="extrasActualEdit.portero" placeholder="Nombre del portero" /></div>
           </div>
           <div class="sidebets">
             <template x-for="sb in sideBets" :key="'asb'+sb.key">
@@ -1223,10 +1246,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=36"></script>
-  <script src="engine.js?v=36"></script>
+  <script src="data.js?v=37"></script>
+  <script src="engine.js?v=37"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
