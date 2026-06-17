@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=34" />
+  <link rel="stylesheet" href="styles.css?v=35" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -544,9 +544,9 @@
         <span class="lr-win"><span class="lr-winval">🏆 Ganar</span></span>
       </div>
       <template x-for="(e,i) in ranked" :key="e.id">
-        <div class="league-row clickrow" :class="{me:e.id===me.id, bot:(e.first_name||'').startsWith('🤖'), guest:isGuest(e), sel:selectedId===e.id, pos1:famPos(i)===1, pos2:famPos(i)===2, pos3:famPos(i)===3}" @click="toggleDetail(e.id)">
+        <div class="league-row clickrow" :class="{me:e.id===me.id, bot:(e.first_name||'').startsWith('🤖'), guest:isGuest(e), paying: famPos(i)!==null && famPos(i)>3, sel:selectedId===e.id, pos1:famPos(i)===1, pos2:famPos(i)===2, pos3:famPos(i)===3}" @click="toggleDetail(e.id)">
           <span class="lr-pos" :class="{inv: famPos(i)===null}" :title="famPos(i)===null ? 'Invitado, fuera de concurso' : ''" x-text="famPos(i)!==null ? famPos(i) : '·'"></span>
-          <span class="lr-name"><span x-text="e.first_name+' '+e.last_name"></span><span class="invtag" x-show="isGuest(e)">invitado</span><span class="incompleto" x-show="!isGuest(e) && (e.id===me.id ? !status.complete : e.complete===false)">⚠️ sin terminar</span><span class="youtag" x-show="e.id===me.id">tú</span><span class="seehint" x-show="canViewPicks">👁️</span></span>
+          <span class="lr-name"><span x-text="e.first_name+' '+e.last_name"></span><span class="paytag" x-show="famPos(i)!==null && famPos(i)>3">🍽️ ¡vas a pagar una cena!</span><span class="invtag" x-show="isGuest(e)">invitado</span><span class="incompleto" x-show="!isGuest(e) && (e.id===me.id ? !status.complete : e.complete===false)">⚠️ sin terminar</span><span class="youtag" x-show="e.id===me.id">tú</span><span class="seehint" x-show="canViewPicks">👁️</span></span>
           <span class="lr-num" x-show="boardLocked"><b x-text="e.points"></b></span>
           <span class="lr-win"><span class="lr-winbar" :style="'width:'+Math.min(100,(e.win||0)*100)+'%'"></span><span class="lr-winval" x-text="pct(e.win)"></span></span>
         </div>
@@ -1202,10 +1202,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=34"></script>
-  <script src="engine.js?v=34"></script>
+  <script src="data.js?v=35"></script>
+  <script src="engine.js?v=35"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=34"></script>
+  <script src="app.js?v=35"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

@@ -740,3 +740,8 @@ tr.clickrow.sel td{background:#e7f1ec}
 .lr-pos.inv{color:var(--muted);opacity:.5}
 .invtag{font-size:.62rem;font-weight:700;color:#8a6d1f;background:#fbeecb;border:1px solid #f0dcae;border-radius:6px;padding:1px 6px;text-transform:uppercase;letter-spacing:.3px;margin-left:2px}
 .league-row.guest .lr-pos{opacity:.6}
+
+/* ===== Fuera del top 3: a pagar cena 🍽️ ===== */
+.league-row.paying .lr-pos{color:var(--err)}
+.league-row.paying .lr-name>span:first-child{color:var(--err)}
+.paytag{font-size:.62rem;font-weight:800;color:#fff;background:var(--err);border-radius:6px;padding:1px 7px;text-transform:uppercase;letter-spacing:.2px;margin-left:2px;white-space:nowrap}
