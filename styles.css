@@ -767,3 +767,8 @@ tr.clickrow.sel td{background:#e7f1ec}
 .portero-prompt .pp-form{display:flex;gap:8px}
 .portero-prompt .pp-form input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--gold2);border-radius:10px;background:#fff}
 .portero-prompt .pp-form .btn{flex:0 0 auto}
+
+/* ===== Desempate (info empate a puntos) ===== */
+.tie-rule{background:#f4f9f6;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:8px 0 0;font-size:.8rem;color:#33403a;line-height:1.45}
+.tie-rule b{color:#26342e}
+.tietag{font-size:.74rem;margin-right:3px;cursor:help}

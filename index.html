@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=37" />
+  <link rel="stylesheet" href="styles.css?v=38" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -560,7 +560,7 @@
         <div class="league-row clickrow" :class="{me:e.id===me.id, bot:(e.first_name||'').startsWith('🤖'), guest:isGuest(e), paying: famPos(i)!==null && famPos(i)>3, sel:selectedId===e.id, pos1:famPos(i)===1, pos2:famPos(i)===2, pos3:famPos(i)===3}" @click="toggleDetail(e.id)">
           <span class="lr-pos" :class="{inv: famPos(i)===null}" :title="famPos(i)===null ? 'Invitado, fuera de concurso' : ''" x-text="famPos(i)!==null ? famPos(i) : '·'"></span>
           <span class="lr-name"><span x-text="e.first_name+' '+e.last_name"></span><span class="paytag" x-show="famPos(i)!==null && famPos(i)>3">🍽️ ¡vas a pagar una cena!</span><span class="invtag" x-show="isGuest(e)">invitado</span><span class="incompleto" x-show="!isGuest(e) && (e.id===me.id ? !status.complete : e.complete===false)">⚠️ sin terminar</span><span class="youtag" x-show="e.id===me.id">tú</span><span class="seehint" x-show="canViewPicks">👁️</span></span>
-          <span class="lr-num" x-show="boardLocked"><b x-text="e.points"></b></span>
+          <span class="lr-num" x-show="boardLocked"><span class="tietag" x-show="e._tied" :title="'Empate a puntos — desempata por '+(e._tieReason||'el sistema de puntuación')">🟰</span><b x-text="e.points"></b></span>
           <span class="lr-win"><span class="lr-winbar" :style="'width:'+Math.min(100,(e.win||0)*100)+'%'"></span><span class="lr-winval" x-text="pct(e.win)"></span></span>
         </div>
       </template>
@@ -569,6 +569,10 @@
     <p class="muted" x-show="!ranked.length && !probBusy" style="text-align:center;padding:16px">Aún no hay quinielas para calcular la clasificación.</p>
     <p class="tiny muted" x-show="!boardLocked && ranked.length">👁️ Toca a un jugador para ver su <b>quiniela completa</b> (o entra en la pestaña <b>Quinielas</b>). «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del Mundial con la fuerza de cada selección. <span x-show="lockCountdown">⏳ Cierra en <b x-text="lockCountdown"></b>.</span></p>
     <p class="tiny muted" x-show="boardLocked && ranked.length">👁️ Toca a un jugador para ver su quiniela y el desglose. «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del resto del Mundial.</p>
+
+    <div class="tie-rule" x-show="boardLocked && ranked.length">
+      🟰 <b>¿Empate a puntos?</b> Desempata, en este orden: <b>1)</b> más puntos en <b>marcadores</b> (más partidos clavados); <b>2)</b> más en <b>eliminatorias</b> (el cuadro); <b>3)</b> más en <b>especiales</b>; y si todo fuera igual, por orden alfabético. <span class="muted">(El 🟰 marca a quien está empatado a puntos con otro.)</span>
+    </div>
 
     <!-- ===== TU CAMINO AL PODIO (personalizado: qué necesitas para subir) ===== -->
     <details class="path-box" x-show="boardLocked && me.id && ranked.length>=2" @toggle="$event.target.open && !pathAnalysis && computePath()">
@@ -1246,10 +1250,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=37"></script>
-  <script src="engine.js?v=37"></script>
+  <script src="data.js?v=38"></script>
+  <script src="engine.js?v=38"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=37"></script>
+  <script src="app.js?v=38"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
