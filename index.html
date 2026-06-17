@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=35" />
+  <link rel="stylesheet" href="styles.css?v=36" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -989,6 +989,16 @@
           </template>
         </div>
         <p class="muted tiny" x-show="!scorers.length">Aún no hay goles. Aparecerán aquí en directo. 🥅</p>
+        <div class="sc-bets" x-show="goleadorBets.length">
+          <div class="sc-bets-h">📋 Vuestra apuesta a la Bota de Oro</div>
+          <template x-for="g in goleadorBets" :key="'gb'+g.pick">
+            <div class="sc-bet-row" :class="{hit:g.live}">
+              <span class="sc-bet-pick"><b x-text="g.pick"></b><span class="sc-bet-live" x-show="g.live" x-text="g.live ? (' · va '+g.live.rank+'º ('+g.live.n+(g.live.n===1?' gol)':' goles)')) : ''"></span></span>
+              <span class="sc-bet-who" x-text="g.players.join(', ')"></span>
+            </div>
+          </template>
+        </div>
+        <p class="muted tiny" x-show="!goleadorBets.length">(Nadie apostó por el máximo goleador.)</p>
       </div>
       <div class="sc-col">
         <div class="sc-head"><h3>🅰️ Máximos asistentes</h3><small class="muted" x-show="assistsLoading">cargando…</small><small class="muted" x-show="!assistsLoading && assisters.length" x-text="assisters.length+' jug.'"></small></div>
@@ -1004,6 +1014,16 @@
         </div>
         <p class="muted tiny" x-show="assistsLoading && !assisters.length">Cargando asistencias… 🅰️</p>
         <p class="muted tiny" x-show="!assistsLoading && !assisters.length">Aparecerán según se jueguen los partidos.</p>
+        <div class="sc-bets" x-show="asistenteBets.length">
+          <div class="sc-bets-h">📋 Vuestra apuesta al máximo asistente</div>
+          <template x-for="g in asistenteBets" :key="'ab'+g.pick">
+            <div class="sc-bet-row" :class="{hit:g.live}">
+              <span class="sc-bet-pick"><b x-text="g.pick"></b><span class="sc-bet-live" x-show="g.live" x-text="g.live ? (' · va '+g.live.rank+'º ('+g.live.n+' asist.)') : ''"></span></span>
+              <span class="sc-bet-who" x-text="g.players.join(', ')"></span>
+            </div>
+          </template>
+        </div>
+        <p class="muted tiny" x-show="!asistenteBets.length">(Nadie apostó por el máximo asistente.)</p>
       </div>
       <div class="sc-col">
         <div class="sc-head"><h3>🧤 Porteros menos goleados</h3><small class="muted" x-show="assistsLoading">cargando…</small><small class="muted" x-show="!assistsLoading && porteros.length" x-text="porteros.length+' port.'"></small></div>
@@ -1019,6 +1039,7 @@
         </div>
         <p class="muted tiny" x-show="assistsLoading && !porteros.length">Cargando porteros… 🧤</p>
         <p class="muted tiny" x-show="!assistsLoading && !porteros.length">Aparecerán los porteros que hayan jugado.</p>
+        <p class="sc-bets-note">ℹ️ En esta porra no se apuesta por el portero — esta tabla es solo para ver quién encaja menos.</p>
       </div>
     </div>
     <p class="tiny muted" style="margin-top:10px">🧤 <b>Porteros</b>: ordenados por <b>goles encajados</b> (GC) de menos a más, entre los que <b>han jugado</b>; «🧤» = partidos sin encajar (portería a cero). Solo cuenta el portero titular de cada partido.</p>
@@ -1202,10 +1223,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=35"></script>
-  <script src="engine.js?v=35"></script>
+  <script src="data.js?v=36"></script>
+  <script src="engine.js?v=36"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=35"></script>
+  <script src="app.js?v=36"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

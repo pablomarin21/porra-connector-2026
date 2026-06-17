@@ -118,6 +118,33 @@ window.porraApp = function () {
     isGuest(e) { const n = (e && e.first_name) || ""; return n.startsWith("🤖") || n.startsWith("🎙"); },
     get podium3() { return (this.ranked || []).filter((e) => !this.isGuest(e)).slice(0, 3); },
     famPos(i) { const e = (this.ranked || [])[i]; if (!e || this.isGuest(e)) return null; let c = 0; for (let k = 0; k <= i; k++) { if (!this.isGuest(this.ranked[k])) c++; } return c; },
+    // ---------- pronósticos de la gente (Bota de Oro / máximo asistente) para la pestaña Goleadores ----------
+    _shortName(e) { const n = (e.first_name || "").trim(); if (n.startsWith("🤖")) return "🤖 IA"; if (n.startsWith("🎙")) return "🎙️ Maldini"; return n.split(/\s+/)[0] || n; },
+    _norm(s) { return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.\-'`]/g, "").trim(); },
+    _surKey(s) { const n = this._norm(s); return n ? n.split(/\s+/).pop() : ""; },
+    _matchLiveKey(key, list) {
+      if (!key || key.length < 3 || !list) return null;
+      for (let i = 0; i < list.length; i++) { if (this._surKey(list[i].name) === key) return { rank: i + 1, n: list[i].n, name: list[i].name }; }
+      return null;
+    },
+    _betSummary(field, list) {
+      const groups = {};
+      for (const e of (this.entries || [])) {
+        const raw = e.picks && e.picks.extras && (e.picks.extras[field] || "").trim(); if (!raw) continue;
+        const key = this._surKey(raw); if (!key) continue;
+        if (!groups[key]) groups[key] = { key, variants: {}, players: [] };
+        groups[key].variants[raw] = (groups[key].variants[raw] || 0) + 1;
+        groups[key].players.push(this._shortName(e));
+      }
+      return Object.values(groups).map((g) => {
+        const live = this._matchLiveKey(g.key, list);
+        const raw = Object.keys(g.variants).sort((a, b) => b.length - a.length)[0];
+        const label = live ? live.name : raw.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+        return { pick: label, players: g.players, live: live ? { rank: live.rank, n: live.n } : null };
+      }).sort((a, b) => ((b.live ? 1 : 0) - (a.live ? 1 : 0)) || (a.live && b.live ? a.live.rank - b.live.rank : 0) || (b.players.length - a.players.length) || a.pick.localeCompare(b.pick));
+    },
+    get goleadorBets() { return this._betSummary("pichichi", this.scorers); },
+    get asistenteBets() { return this._betSummary("asistente", this.assisters); },
     groupFixtures(L) { return D.GROUP_FIXTURES.filter((f) => f.group === L); },
     scoreTxt(code) {
       const g = this.outcome && this.outcome.groupMap && this.outcome.groupMap[code];
@@ -1073,7 +1100,7 @@ window.porraApp = function () {
       this.probBusy = false;
     },
     openResults() { this.tab = "results"; this.fetchEspn(false).then(() => this.loadForecasts()).catch(() => {}); this.loadEntries({ recompute: false }); },
-    openGoals() { this.tab = "goals"; this.fetchEspn(false).then(() => this.loadMatchData()).catch(() => {}); },
+    openGoals() { this.tab = "goals"; this.fetchEspn(false).then(() => this.loadMatchData()).catch(() => {}); this.loadEntries({ recompute: false }).catch(() => {}); },
     async refreshBoard() { await this.loadResults(); await this.loadEntries(); },
     recomputeRanking() {
       if (this.usingServerBoard) { if (this.selectedId) this.det = this._computeDetail(this.selectedId); return; }

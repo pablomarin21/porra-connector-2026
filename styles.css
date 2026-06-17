@@ -745,3 +745,15 @@ tr.clickrow.sel td{background:#e7f1ec}
 .league-row.paying .lr-pos{color:var(--err)}
 .league-row.paying .lr-name>span:first-child{color:var(--err)}
 .paytag{font-size:.62rem;font-weight:800;color:#fff;background:var(--err);border-radius:6px;padding:1px 7px;text-transform:uppercase;letter-spacing:.2px;margin-left:2px;white-space:nowrap}
+
+/* ===== Pronósticos de la gente bajo las tablas de goleadores/asistentes ===== */
+.sc-bets{margin-top:11px;border-top:1px solid var(--line);padding-top:9px}
+.sc-bets-h{font-weight:800;color:var(--green);font-size:.78rem;margin:0 0 6px}
+.sc-bet-row{display:flex;flex-direction:column;gap:1px;padding:5px 0;border-top:1px dashed var(--line)}
+.sc-bet-row:first-of-type{border-top:0}
+.sc-bet-pick{font-size:.82rem;color:#33403a}
+.sc-bet-pick b{color:#26342e}
+.sc-bet-live{color:var(--ok);font-weight:700}
+.sc-bet-row.hit .sc-bet-pick b{color:var(--ok)}
+.sc-bet-who{font-size:.72rem;color:var(--muted)}
+.sc-bets-note{font-size:.72rem;color:var(--muted);margin-top:10px;font-style:italic;line-height:1.3}
