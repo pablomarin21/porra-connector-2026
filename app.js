@@ -88,7 +88,7 @@ window.porraApp = function () {
     letters: D.GROUP_LETTERS, allTeams: ALL_TEAMS.slice().sort((a, b) => D.es(a).localeCompare(D.es(b))),
     sideBets: D.SIDE_BETS,
     // en vivo (ESPN) + cierre automático
-    espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null, forecasts: {}, forecastsAt: 0,
+    espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null, forecasts: {}, forecastsAt: 0, pathAnalysis: null, pathLoading: false,
     extrasActualEdit: { revelacion: "", decepcion: "", pichichi: "", asistente: "", sidebets: {} },
     // datos
     entries: [], ranked: [], results: {}, rEdit: defaultREdit(), koEdit: defaultKoEdit(), liveBr: { teamsByMatch: {}, winnerOf: {}, complete: false },
@@ -401,6 +401,66 @@ window.porraApp = function () {
       return bits;
     },
     teamQ(team) { const p = this.teamProbs[team]; return p ? p.qualify : null; },
+    // ---------- "Tu camino al podio": qué tendría que pasar para subir (justifica el %) ----------
+    async computePath() {
+      const meId = this.me && this.me.id;
+      if (this.pathLoading) return;
+      this.pathLoading = true; this.pathAnalysis = null;
+      await new Promise((r) => setTimeout(r, 40));
+      try {
+        if (!meId) { this.pathAnalysis = { none: true }; return; }
+        const S = this.settings;
+        const oc0 = this.outcome || Eng.liveOutcome(this.results);
+        const simMap = Object.assign({}, this.results, (oc0 && oc0.groupMap) || {});
+        const entries = (this.entries || []).filter((e) => e.picks).map((e) => ({
+          id: e.id, name: (e.first_name + " " + e.last_name).trim(),
+          dp: Eng.derivePicks(e.picks),
+          champ: (e.picks.bracket && (e.picks.bracket[D.FINAL.match] || e.picks.bracket[String(D.FINAL.match)])) || null,
+          extra: Eng.scoreExtras(e.picks.extras, this.extrasActual, S).total,
+        }));
+        const me = entries.find((e) => e.id === meId);
+        if (!me || entries.length < 2) { this.pathAnalysis = { none: true }; return; }
+        const N = 3000;
+        let meFirst = 0, mePod = 0;
+        const cN = {}, cF = {}, cP = {};
+        for (let s = 0; s < N; s++) {
+          const oc = Eng.simulateOutcome(simMap, Math.random);
+          const champ = oc.reached.champion;
+          let myP = 0; const ps = [];
+          for (const e of entries) { const p = Eng.scoreEntry(e.dp, oc, S) + e.extra; ps.push({ id: e.id, p }); if (e.id === meId) myP = p; }
+          let above = 0;
+          for (const x of ps) { if (x.p > myP) above++; }
+          const rank = above + 1;
+          if (rank === 1) meFirst++;
+          if (rank <= 3) mePod++;
+          if (champ) { cN[champ] = (cN[champ] || 0) + 1; if (rank === 1) cF[champ] = (cF[champ] || 0) + 1; if (rank <= 3) cP[champ] = (cP[champ] || 0) + 1; }
+        }
+        const byId = {}; entries.forEach((e) => (byId[e.id] = e));
+        const rankedList = (this.ranked && this.ranked.length) ? this.ranked : [];
+        const myRank = rankedList.length ? (rankedList.findIndex((r) => r.id === meId) + 1) : null;
+        const myRow = rankedList.find((r) => r.id === meId);
+        const myPoints = myRow ? myRow.points : null;
+        const champs = Object.keys(cN).map((c) => ({ team: c, es: D.es(c), flag: D.flag(c), n: cN[c], freq: cN[c] / N, pFirst: (cF[c] || 0) / cN[c], pPod: (cP[c] || 0) / cN[c], mine: c === me.champ }));
+        const scenarios = champs.filter((c) => c.freq >= 0.02 && c.pPod >= 0.05).sort((a, b) => b.pFirst - a.pFirst || b.pPod - a.pPod).slice(0, 4);
+        const myChampC = me.champ ? champs.find((c) => c.team === me.champ) : null;
+        const myChampAlive = !!(myChampC && myChampC.n > 0);
+        // rival a batir = el que vas justo por detrás en la clasificación actual (al que hay que adelantar para subir)
+        let rival = null;
+        if (myRank && myRank > 1 && rankedList[myRank - 2]) {
+          const rRow = rankedList[myRank - 2]; const rEnt = byId[rRow.id];
+          rival = { name: rEnt ? rEnt.name : ((rRow.first_name || "") + " " + (rRow.last_name || "")).trim(), champ: rEnt && rEnt.champ ? D.es(rEnt.champ) : null, points: rRow.points, gap: myPoints != null ? (rRow.points - myPoints) : null };
+        }
+        const win = (myRow && typeof myRow.win === "number") ? myRow.win : meFirst / N;
+        const podium = (myRow && typeof myRow.podium === "number") ? myRow.podium : mePod / N;
+        this.pathAnalysis = {
+          rank: myRank, points: myPoints, win, podium, sims: N,
+          isLeader: myRank === 1,
+          myChamp: me.champ ? D.es(me.champ) : null, myChampFlag: me.champ ? D.flag(me.champ) : "",
+          myChampAlive, myChampFirst: myChampAlive ? (cF[me.champ] || 0) / myChampC.n : null, myChampPod: myChampAlive ? (cP[me.champ] || 0) / myChampC.n : null,
+          scenarios, rival,
+        };
+      } finally { this.pathLoading = false; }
+    },
     // Goleadores: instantáneo desde el scoreboard (con equipo + penaltis). El scoreboard NO trae
     // asistencias → esas se cargan aparte de los summaries (loadMatchData).
     computeScorers() {

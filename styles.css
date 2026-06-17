@@ -697,3 +697,33 @@ tr.clickrow.sel td{background:#e7f1ec}
 .goals-sec .sc-cols{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:640px){.goals-sec .sc-cols{grid-template-columns:1fr 1fr}}
 @media(min-width:1000px){.goals-sec .sc-cols.sc3{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== "Tu camino al podio" (Monte Carlo personalizado) ===== */
+.path-box{margin-top:14px;background:linear-gradient(180deg,#0d3a2b,#0b3326);border:1px solid #1d5a44;border-radius:14px;color:#eaf5ef;overflow:hidden}
+.path-box>summary{list-style:none;cursor:pointer;padding:13px 15px;font-weight:800;font-size:.96rem;color:#ffe89b;display:flex;align-items:center;gap:8px}
+.path-box>summary::-webkit-details-marker{display:none}
+.path-box>summary::after{content:"▸";margin-left:auto;color:#9cc6b6}
+.path-box[open]>summary::after{content:"▾"}
+.path-box .pb-body{padding:2px 15px 15px}
+.pb-loading{display:flex;align-items:center;gap:9px;padding:10px 0;color:#cfe7dc;font-size:.9rem}
+.pb-spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.25);border-top-color:var(--gold);border-radius:50%;display:inline-block;animation:pbspin .8s linear infinite}
+@keyframes pbspin{to{transform:rotate(360deg)}}
+.pb-status{font-size:.9rem;line-height:1.55;margin:4px 0 10px;color:#eaf5ef}
+.pb-pill{display:inline-block;background:rgba(255,255,255,.10);border-radius:999px;padding:2px 10px;margin:2px 2px 0 0;font-size:.84rem;white-space:nowrap}
+.pb-pill b{color:var(--gold)}
+.pb-line{display:flex;gap:9px;align-items:flex-start;font-size:.88rem;line-height:1.5;margin:9px 0;color:#e7f3ed}
+.pb-line .pb-ic{flex:0 0 auto;font-size:1.05rem}
+.pb-line b{color:#fff}
+.pb-line.lead{background:rgba(245,197,66,.12);border:1px solid rgba(245,197,66,.3);border-radius:10px;padding:9px 11px}
+.pb-line.rival{background:rgba(255,255,255,.06);border-radius:10px;padding:9px 11px}
+.pb-scen{margin:12px 0 6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:11px;padding:9px 11px}
+.pb-h{font-weight:800;color:#bfe6d4;font-size:.84rem;margin:0 0 7px}
+.pb-scen-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px dashed rgba(255,255,255,.12);font-size:.85rem}
+.pb-scen-row:first-of-type{border-top:0}
+.pb-scen-row.mine{background:rgba(245,197,66,.10);border-radius:8px;margin:0 -5px;padding-left:5px;padding-right:5px}
+.pb-scen-team b{color:#fff}
+.pb-mine{color:var(--gold);font-weight:700;font-size:.78rem}
+.pb-scen-prob{white-space:nowrap;color:#cfe7dc}
+.pb-scen-prob b{color:var(--gold)}
+.path-box .muted{color:#9cc6b6}
+.pb-foot{margin-top:10px;display:flex;align-items:center;gap:8px;color:#9cc6b6!important}

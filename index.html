@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=31" />
+  <link rel="stylesheet" href="styles.css?v=32" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -556,6 +556,44 @@
     <p class="muted" x-show="!ranked.length && !probBusy" style="text-align:center;padding:16px">Aún no hay quinielas para calcular la clasificación.</p>
     <p class="tiny muted" x-show="!boardLocked && ranked.length">👁️ Toca a un jugador para ver su <b>quiniela completa</b> (o entra en la pestaña <b>Quinielas</b>). «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del Mundial con la fuerza de cada selección. <span x-show="lockCountdown">⏳ Cierra en <b x-text="lockCountdown"></b>.</span></p>
     <p class="tiny muted" x-show="boardLocked && ranked.length">👁️ Toca a un jugador para ver su quiniela y el desglose. «🏆 Ganar» = probabilidad de acabar 1º según miles de simulaciones del resto del Mundial.</p>
+
+    <!-- ===== TU CAMINO AL PODIO (personalizado: qué necesitas para subir) ===== -->
+    <details class="path-box" x-show="boardLocked && me.id && ranked.length>=2" @toggle="$event.target.open && !pathAnalysis && computePath()">
+      <summary>🔮 Tu camino al podio — ¿qué necesitas para subir?</summary>
+      <div class="pb-body">
+        <div class="pb-loading" x-show="pathLoading"><span class="pb-spin"></span> Calculando miles de finales posibles del Mundial…</div>
+        <p class="muted tiny" x-show="!pathLoading && pathAnalysis && pathAnalysis.none">Necesitas tu porra creada y al menos 2 participantes para calcular esto.</p>
+        <template x-if="!pathLoading && pathAnalysis && !pathAnalysis.none">
+          <div>
+            <p class="pb-status">
+              Ahora vas <b x-text="pathAnalysis.rank+'º'"></b><span x-show="pathAnalysis.points!=null" x-text="' · '+pathAnalysis.points+' pts'"></span>. Según <b x-text="pathAnalysis.sims.toLocaleString('es')"></b> simulaciones del resto del Mundial <span class="muted">(con la porra de todos)</span>:
+              <span class="pb-pill win">🏆 ganar <b x-text="pct(pathAnalysis.win)"></b></span>
+              <span class="pb-pill pod">🥉 podio <b x-text="pct(pathAnalysis.podium)"></b></span>
+            </p>
+
+            <p class="pb-line lead" x-show="pathAnalysis.isLeader">👑 <b>¡Vas líder!</b> Para aguantar arriba, lo que más te conviene es <span x-show="pathAnalysis.myChampAlive" x-text="'que gane tu campeón ('+pathAnalysis.myChamp+')'"></span><span x-show="!pathAnalysis.myChampAlive">que no remonten tus rivales</span>.</p>
+
+            <p class="pb-line" x-show="pathAnalysis.myChampAlive"><span class="pb-ic">🏆</span> <span>Tu mayor baza es tu campeón <b><span x-text="pathAnalysis.myChampFlag"></span> <span x-text="pathAnalysis.myChamp"></span></b>: si gana el Mundial, quedas <b>1º</b> el <b x-text="pct(pathAnalysis.myChampFirst)"></b> de las veces y en el <b>podio</b> el <b x-text="pct(pathAnalysis.myChampPod)"></b>.</span></p>
+            <p class="pb-line muted" x-show="pathAnalysis.myChamp && !pathAnalysis.myChampAlive"><span class="pb-ic">💀</span> Tu campeón (<span x-text="pathAnalysis.myChamp"></span>) ya no puede ganar el Mundial; tu mayor baza ahora son estos escenarios:</p>
+
+            <div class="pb-scen" x-show="pathAnalysis.scenarios.length">
+              <div class="pb-h">📈 Lo que más te conviene que pase</div>
+              <template x-for="sc in pathAnalysis.scenarios" :key="'pscn'+sc.team">
+                <div class="pb-scen-row" :class="{mine:sc.mine}">
+                  <span class="pb-scen-team"><span class="flag" x-text="sc.flag"></span> Campeón <b x-text="sc.es"></b> <small class="muted" x-text="'('+pct(sc.freq)+' probable)'"></small><span class="pb-mine" x-show="sc.mine"> ⭐ el tuyo</span></span>
+                  <span class="pb-scen-prob">→ tú <b x-text="pct(sc.pFirst)"></b> 1º · <b x-text="pct(sc.pPod)"></b> podio</span>
+                </div>
+              </template>
+              <p class="tiny muted" style="margin-top:5px">El resto de finales te dejan por debajo. Tu <b>🏆 ganar <span x-text="pct(pathAnalysis.win)"></span></b> sale de combinar todos estos escenarios según lo probable que es cada final.</p>
+            </div>
+
+            <p class="pb-line rival" x-show="pathAnalysis.rival && !pathAnalysis.isLeader"><span class="pb-ic">🎯</span> <span><b>Tu rival a batir:</b> <span x-text="pathAnalysis.rival.name"></span><span x-show="pathAnalysis.rival.gap!=null && pathAnalysis.rival.gap>0" x-text="' (te saca '+pathAnalysis.rival.gap+' pts)'"></span><span x-show="pathAnalysis.rival.gap===0">, empatados a puntos</span>. Para adelantarle, tu cuadro tiene que puntuar más que el suyo<span x-show="pathAnalysis.rival.champ && pathAnalysis.rival.champ!==pathAnalysis.myChamp" x-text="' — sobre todo que tu campeón llegue más lejos que el suyo ('+pathAnalysis.rival.champ+')'"></span><span x-show="pathAnalysis.rival.champ && pathAnalysis.rival.champ===pathAnalysis.myChamp">. Ojo: tenéis el <b>mismo campeón</b>, así que os lo jugáis en el resto del cuadro y los grupos.</span><span x-show="!pathAnalysis.rival.champ || pathAnalysis.rival.champ!==pathAnalysis.myChamp">.</span></span></p>
+
+            <p class="tiny muted pb-foot">🔄 Es una estimación que se recalcula con cada partido. <button class="btn mini ghost" @click="computePath()" :disabled="pathLoading">↻ recalcular</button></p>
+          </div>
+        </template>
+      </div>
+    </details>
 
     <!-- EXPLICACIÓN DE LA PUNTUACIÓN (modelo MARCADORES) -->
     <details class="scoring-explain expl-box" x-show="explain && explain.people && explain.people.length">
@@ -1152,10 +1190,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=31"></script>
-  <script src="engine.js?v=31"></script>
+  <script src="data.js?v=32"></script>
+  <script src="engine.js?v=32"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
