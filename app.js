@@ -145,6 +145,36 @@ window.porraApp = function () {
     },
     get goleadorBets() { return this._betSummary("pichichi", this.scorers); },
     get asistenteBets() { return this._betSummary("asistente", this.assisters); },
+    // ---------- resumen de la jornada (auto, se actualiza cada ronda completa) ----------
+    tournamentMatchday() {
+      const gm = (this.outcome && this.outcome.groupMap) || this.results || {};
+      let minK = 3;
+      for (const L of D.GROUP_LETTERS) {
+        const fx = D.GROUP_FIXTURES.filter((f) => f.group === L);
+        let k = 0;
+        for (let m = 1; m <= 3; m++) { const games = fx.filter((f) => f.md === m); const done = games.length > 0 && games.every((f) => { const r = gm[f.code]; return r && r.played && r.home_score != null; }); if (done) k = m; else break; }
+        minK = Math.min(minK, k);
+      }
+      return minK;
+    },
+    get matchdaySummary() {
+      if (!this.boardLocked || !this.ranked || this.ranked.length < 2) return null;
+      const jornada = this.tournamentMatchday();
+      if (jornada < 1) return null;
+      const real = this.ranked.filter((r) => !this.isGuest(r));
+      if (real.length < 2) return null;
+      const leader = real[0], second = real[1];
+      const a = this.extrasActual || {}, asb = a.sidebets || {};
+      const esp = [];
+      if (asb.hattrick) esp.push("hat-trick");
+      if (asb.dobleRoja) esp.push("doble roja");
+      if (a.revelacion) esp.push("revelación");
+      if (a.decepcion) esp.push("decepción");
+      if (a.pichichi) esp.push("Bota de Oro");
+      if (a.asistente) esp.push("máximo asistente");
+      if (a.portero) esp.push("mejor portero");
+      return { jornada, leader: this._shortName(leader), leaderPts: leader.points, gap: leader.points - second.points, second: this._shortName(second), podio: this.podium3.map((p) => this._shortName(p)), esp };
+    },
     get porteroBets() { return this._betSummary("portero", this.porteros); },
     // ---------- predicción "mejor portero" (campo nuevo): aviso en pantalla principal + guardar ----------
     get myEntry() { const id = this.me && this.me.id; return id ? (this.entries || []).find((e) => e.id === id) : null; },

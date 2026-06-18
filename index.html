@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=38" />
+  <link rel="stylesheet" href="styles.css?v=39" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -486,6 +486,15 @@
     <div class="step-head">
       <h2>🏆 Clasificación</h2>
       <p class="muted">La clasificación de la porra. <span x-show="probBusy">⏳ calculando probabilidades…</span></p>
+    </div>
+
+    <!-- Resumen de la jornada (auto) -->
+    <div class="md-summary" x-show="matchdaySummary">
+      <p class="mds-h">📋 Jornada <span x-text="matchdaySummary ? matchdaySummary.jornada : ''"></span> completada — cómo va la cosa</p>
+      <p class="mds-line">🏆 Va líder <b x-text="matchdaySummary ? matchdaySummary.leader : ''"></b> con <b x-text="(matchdaySummary ? matchdaySummary.leaderPts : 0)+' pts'"></b><span x-show="matchdaySummary && matchdaySummary.gap>0" x-text="', '+(matchdaySummary?matchdaySummary.gap:0)+' por delante de '+(matchdaySummary?matchdaySummary.second:'')"></span><span x-show="matchdaySummary && matchdaySummary.gap===0" x-text="', empatado con '+(matchdaySummary?matchdaySummary.second:'')"></span>.</p>
+      <p class="mds-line">🥇🥈🥉 Podio: <b x-text="matchdaySummary ? matchdaySummary.podio.join(' · ') : ''"></b>.</p>
+      <p class="mds-line" x-show="matchdaySummary && matchdaySummary.esp.length">✅ Especiales ya resueltas: <b x-text="matchdaySummary ? matchdaySummary.esp.join(', ') : ''"></b>.</p>
+      <p class="mds-note">ℹ️ Los <b>marcadores</b> ya jugados quedan <b>fijos</b>; el <b>plus de orden de grupo</b> llegará cuando terminen los grupos.</p>
     </div>
 
     <!-- Cómo se puntúa (siempre visible) -->
@@ -1250,10 +1259,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=38"></script>
-  <script src="engine.js?v=38"></script>
+  <script src="data.js?v=39"></script>
+  <script src="engine.js?v=39"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=38"></script>
+  <script src="app.js?v=39"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
