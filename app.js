@@ -88,7 +88,7 @@ window.porraApp = function () {
     letters: D.GROUP_LETTERS, allTeams: ALL_TEAMS.slice().sort((a, b) => D.es(a).localeCompare(D.es(b))),
     sideBets: D.SIDE_BETS,
     // en vivo (ESPN) + cierre automático
-    espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null, forecasts: {}, forecastsAt: 0, pathAnalysis: null, pathLoading: false, cmpA: "", cmpB: "",
+    espnEvents: [], espnAt: 0, liveBusy: false, nowTs: 0, outcome: null, extrasActual: {}, _espnTimer: null, explain: null, forecasts: {}, forecastsAt: 0, pathAnalysis: null, pathLoading: false, cmpA: "", cmpB: "", cmpGroup: "",
     extrasActualEdit: { revelacion: "", decepcion: "", pichichi: "", asistente: "", portero: "", sidebets: {} },
     // datos
     entries: [], ranked: [], results: {}, rEdit: defaultREdit(), koEdit: defaultKoEdit(), liveBr: { teamsByMatch: {}, winnerOf: {}, complete: false },
@@ -168,6 +168,28 @@ window.porraApp = function () {
       }
       return pts;
     },
+    _marcPts(a, p, S) {
+      if (!a || !a.played || a.home_score == null || a.away_score == null || !p || p[0] == null || p[1] == null) return null;
+      const ah = a.home_score, aa = a.away_score, ph = p[0], pa = p[1];
+      if (ph === ah && pa === aa) return { pts: (S.exact || 0), exact: true };
+      if (Math.sign(ah - aa) !== Math.sign(ph - pa)) return { pts: 0 };
+      return { pts: (ah - aa) === (ph - pa) ? (S.gd || S.result || 0) : (S.result || 0) };
+    },
+    _groupMatchDetail(picksA, picksB, L, oc, S) {   // partido a partido: marcador de cada uno vs el real
+      const act = oc.groupScores || oc.groupMap || {}; const pA = picksA.scores || {}, pB = picksB.scores || {};
+      return D.GROUP_FIXTURES.filter((f) => f.group === L).map((fx) => {
+        const a = act[fx.code]; const played = !!(a && a.played && a.home_score != null);
+        const prA = pA[fx.code], prB = pB[fx.code];
+        const ra = played ? this._marcPts(a, prA, S) : null, rb = played ? this._marcPts(a, prB, S) : null;
+        return {
+          home: D.es(fx.home), homeFlag: D.flag(fx.home), away: D.es(fx.away), awayFlag: D.flag(fx.away),
+          played, real: played ? (a.home_score + "-" + a.away_score) : null,
+          aPred: (prA && prA[0] != null) ? (prA[0] + "-" + prA[1]) : null, aPts: ra ? ra.pts : null, aExact: !!(ra && ra.exact),
+          bPred: (prB && prB[0] != null) ? (prB[0] + "-" + prB[1]) : null, bPts: rb ? rb.pts : null, bExact: !!(rb && rb.exact),
+        };
+      });
+    },
+    get cmpGroupData() { const cr = this.compareResult; if (!cr || !this.cmpGroup) return null; return cr.groups.find((g) => g.L === this.cmpGroup) || null; },
     _cmpOne(id, oc, S) {
       const e = (this.entries || []).find((x) => x.id === id); if (!e || !e.picks) return null;
       const dp = Eng.derivePicks(e.picks);
@@ -188,7 +210,7 @@ window.porraApp = function () {
         { key: "Especiales", a: A.ex.total, b: B.ex.total },
       ].filter((c) => c.a || c.b);
       const groups = [];
-      for (const L of D.GROUP_LETTERS) { const pa = this._groupMarc(A.picks, L, oc, S), pb = this._groupMarc(B.picks, L, oc, S); if (pa > 0 || pb > 0) groups.push({ L, a: pa, b: pb }); }
+      for (const L of D.GROUP_LETTERS) { const pa = this._groupMarc(A.picks, L, oc, S), pb = this._groupMarc(B.picks, L, oc, S); if (pa > 0 || pb > 0) groups.push({ L, a: pa, b: pb, matches: this._groupMatchDetail(A.picks, B.picks, L, oc, S) }); }
       const leaderName = A.total === B.total ? "" : this._shortName({ first_name: (A.total > B.total ? A : B).name });
       return { A, B, gap: A.total - B.total, leaderName, cats, groups };
     },

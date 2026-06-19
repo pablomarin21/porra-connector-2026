@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=40" />
+  <link rel="stylesheet" href="styles.css?v=41" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -623,16 +623,31 @@
 
             <div class="cmp-champ">👑 Campeón: <b><span x-text="compareResult.A.champFlag"></span> <span x-text="compareResult.A.champ||'—'"></span></b> <span class="muted">vs</span> <b><span x-text="compareResult.B.champFlag"></span> <span x-text="compareResult.B.champ||'—'"></span></b> <span class="cmp-same" x-show="compareResult.A.champ && compareResult.A.champ===compareResult.B.champ">(mismo)</span></div>
 
-            <div class="cmp-h" x-show="compareResult.groups.length">⚽ Marcadores por grupo (lo que lleva clavado cada uno)</div>
+            <div class="cmp-h" x-show="compareResult.groups.length">⚽ Marcadores por grupo <span class="muted" style="font-weight:500;font-size:.72rem">— toca un grupo para ver partido a partido</span></div>
             <div class="cmp-groups" x-show="compareResult.groups.length">
               <template x-for="g in compareResult.groups" :key="'cg'+g.L">
-                <div class="cmp-grow" :class="{awin:g.a>g.b, bwin:g.b>g.a}">
+                <div class="cmp-grow clickrow" :class="{awin:g.a>g.b, bwin:g.b>g.a, open:cmpGroup===g.L}" @click="cmpGroup = (cmpGroup===g.L ? '' : g.L)">
                   <span class="cmp-ga" x-text="'+'+g.a"></span>
                   <span class="cmp-gl" x-text="'Grupo '+g.L"></span>
                   <span class="cmp-gb" x-text="'+'+g.b"></span>
                 </div>
               </template>
             </div>
+
+            <!-- Detalle del grupo: partido a partido, marcador de cada uno vs el real -->
+            <div class="cmp-gdetail" x-show="cmpGroup && cmpGroupData">
+              <div class="cgd-h">⚽ Grupo <b x-text="cmpGroup"></b> — partido a partido</div>
+              <div class="cgd-matchhdr"><span class="cmh-m">Partido (resultado real)</span><span class="cmh-a" x-text="compareResult.A.name.split(' ')[0]"></span><span class="cmh-b" x-text="compareResult.B.name.split(' ')[0]"></span></div>
+              <template x-for="(m,i) in (cmpGroupData?cmpGroupData.matches:[])" :key="'cm'+i">
+                <div class="cgd-match" :class="{pend:!m.played}">
+                  <span class="cgm-teams"><span class="flag" x-text="m.homeFlag"></span> <span x-text="m.home"></span> <b class="cgm-real" x-text="m.played?m.real:'vs'"></b> <span class="flag" x-text="m.awayFlag"></span> <span x-text="m.away"></span></span>
+                  <span class="cgm-pred" :class="{exact:m.aExact, hit:m.aPts>0}"><span x-text="m.aPred||'—'"></span><span class="cgm-pts" x-show="m.aPts!=null && m.aPts>0" x-text="(m.aExact?'🎯':'✅')+'+'+m.aPts"></span></span>
+                  <span class="cgm-pred" :class="{exact:m.bExact, hit:m.bPts>0}"><span x-text="m.bPred||'—'"></span><span class="cgm-pts" x-show="m.bPts!=null && m.bPts>0" x-text="(m.bExact?'🎯':'✅')+'+'+m.bPts"></span></span>
+                </div>
+              </template>
+              <p class="tiny muted" style="margin-top:5px">🎯 = marcador clavado (+<span x-text="settings.exact"></span>) · ✅ = acertó el 1-X-2 (+<span x-text="settings.result"></span>).</p>
+            </div>
+
             <p class="tiny muted" style="margin-top:6px">El verde marca quién va por delante en cada cosa. (Los marcadores ya jugados son fijos.)</p>
           </div>
         </template>
@@ -1315,10 +1330,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=40"></script>
-  <script src="engine.js?v=40"></script>
+  <script src="data.js?v=41"></script>
+  <script src="engine.js?v=41"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=40"></script>
+  <script src="app.js?v=41"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>

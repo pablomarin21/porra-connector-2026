@@ -817,3 +817,22 @@ tr.clickrow.sel td{background:#e7f1ec}
 .cmp-grow .cmp-gl{font-size:.68rem;color:var(--muted);white-space:nowrap}
 .cmp-grow.awin .cmp-ga{color:#1f8f4e}.cmp-grow.awin{border-color:#bfe3cc}
 .cmp-grow.bwin .cmp-gb{color:#1f8f4e}.cmp-grow.bwin{border-color:#cdd9f0}
+
+/* ===== Comparar: detalle de grupo (partido a partido, marcadores) ===== */
+.cmp-grow.clickrow{cursor:pointer}
+.cmp-grow.open{outline:2px solid var(--green);outline-offset:-1px}
+.cmp-gdetail{margin-top:8px;background:#f4f9f6;border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.cgd-h{font-weight:800;color:var(--green);font-size:.84rem;margin:0 0 7px}
+.cgd-matchhdr{display:grid;grid-template-columns:1fr 64px 64px;gap:6px;font-size:.64rem;font-weight:800;color:var(--muted);text-transform:uppercase;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.cmh-a,.cmh-b{text-align:center}
+.cgd-match{display:grid;grid-template-columns:1fr 64px 64px;gap:6px;align-items:center;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.76rem}
+.cgd-match:last-of-type{border-bottom:0}
+.cgd-match.pend{opacity:.6}
+.cgm-teams{display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-width:0}
+.cgm-teams .flag{font-size:.9rem}
+.cgm-real{color:var(--green);font-weight:800;background:#eaf4ee;border-radius:5px;padding:0 5px}
+.cgd-match.pend .cgm-real{background:none;color:var(--muted)}
+.cgm-pred{display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;font-weight:700;color:#46514b;border-radius:6px;padding:2px 3px}
+.cgm-pred.hit{background:#e9f6ee}
+.cgm-pred.exact{background:#d7f0e0}
+.cgm-pts{font-size:.6rem;color:#1f8f4e;font-weight:800;white-space:nowrap}
