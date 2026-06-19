@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=39" />
+  <link rel="stylesheet" href="styles.css?v=40" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -582,6 +582,62 @@
     <div class="tie-rule" x-show="boardLocked && ranked.length">
       🟰 <b>¿Empate a puntos?</b> Desempata, en este orden: <b>1)</b> más puntos en <b>marcadores</b> (más partidos clavados); <b>2)</b> más en <b>eliminatorias</b> (el cuadro); <b>3)</b> más en <b>especiales</b>; y si todo fuera igual, por orden alfabético. <span class="muted">(El 🟰 marca a quien está empatado a puntos con otro.)</span>
     </div>
+
+    <!-- Comparar dos porras -->
+    <details class="compare-box" x-show="boardLocked && compareOptions.length>=2" @toggle="$event.target.open && ensureCompareDefaults()">
+      <summary>⚖️ Comparar porras — tú vs otro (o dos cualesquiera)</summary>
+      <div class="cmp-body">
+        <div class="cmp-pickers">
+          <select x-model="cmpA"><template x-for="o in compareOptions" :key="'ca'+o.id"><option :value="o.id" x-text="o.name"></option></template></select>
+          <span class="cmp-vs">VS</span>
+          <select x-model="cmpB"><template x-for="o in compareOptions" :key="'cb'+o.id"><option :value="o.id" x-text="o.name"></option></template></select>
+        </div>
+        <p class="muted tiny" x-show="cmpA && cmpA===cmpB">Elige dos participantes distintos.</p>
+
+        <template x-if="compareResult">
+          <div>
+            <div class="cmp-head">
+              <div class="cmp-col">
+                <div class="cmp-nm" x-text="compareResult.A.name"></div>
+                <div class="cmp-tot" x-text="compareResult.A.total+' pts'"></div>
+              </div>
+              <div class="cmp-mid">
+                <div class="cmp-gap" x-show="compareResult.gap!==0"><b x-text="compareResult.leaderName"></b><br>va <b x-text="'+'+Math.abs(compareResult.gap)"></b></div>
+                <div class="cmp-gap eq" x-show="compareResult.gap===0">¡Empate a puntos!</div>
+              </div>
+              <div class="cmp-col">
+                <div class="cmp-nm" x-text="compareResult.B.name"></div>
+                <div class="cmp-tot" x-text="compareResult.B.total+' pts'"></div>
+              </div>
+            </div>
+
+            <div class="cmp-h">📊 Por categorías</div>
+            <template x-for="c in compareResult.cats" :key="'cc'+c.key">
+              <div class="cmp-cat">
+                <span class="cmp-a" :class="{win:c.a>c.b}" x-text="c.a"></span>
+                <span class="cmp-bar"><span class="cmp-fill-a" :style="'flex:'+(c.a||0)"></span><span class="cmp-fill-b" :style="'flex:'+(c.b||0)"></span></span>
+                <span class="cmp-b" :class="{win:c.b>c.a}" x-text="c.b"></span>
+                <span class="cmp-key" x-text="c.key"></span>
+              </div>
+            </template>
+
+            <div class="cmp-champ">👑 Campeón: <b><span x-text="compareResult.A.champFlag"></span> <span x-text="compareResult.A.champ||'—'"></span></b> <span class="muted">vs</span> <b><span x-text="compareResult.B.champFlag"></span> <span x-text="compareResult.B.champ||'—'"></span></b> <span class="cmp-same" x-show="compareResult.A.champ && compareResult.A.champ===compareResult.B.champ">(mismo)</span></div>
+
+            <div class="cmp-h" x-show="compareResult.groups.length">⚽ Marcadores por grupo (lo que lleva clavado cada uno)</div>
+            <div class="cmp-groups" x-show="compareResult.groups.length">
+              <template x-for="g in compareResult.groups" :key="'cg'+g.L">
+                <div class="cmp-grow" :class="{awin:g.a>g.b, bwin:g.b>g.a}">
+                  <span class="cmp-ga" x-text="'+'+g.a"></span>
+                  <span class="cmp-gl" x-text="'Grupo '+g.L"></span>
+                  <span class="cmp-gb" x-text="'+'+g.b"></span>
+                </div>
+              </template>
+            </div>
+            <p class="tiny muted" style="margin-top:6px">El verde marca quién va por delante en cada cosa. (Los marcadores ya jugados son fijos.)</p>
+          </div>
+        </template>
+      </div>
+    </details>
 
     <!-- ===== TU CAMINO AL PODIO (personalizado: qué necesitas para subir) ===== -->
     <details class="path-box" x-show="boardLocked && me.id && ranked.length>=2" @toggle="$event.target.open && !pathAnalysis && computePath()">
@@ -1259,10 +1315,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=39"></script>
-  <script src="engine.js?v=39"></script>
+  <script src="data.js?v=40"></script>
+  <script src="engine.js?v=40"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=39"></script>
+  <script src="app.js?v=40"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
