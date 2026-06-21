@@ -836,3 +836,23 @@ tr.clickrow.sel td{background:#e7f1ec}
 .cgm-pred.hit{background:#e9f6ee}
 .cgm-pred.exact{background:#d7f0e0}
 .cgm-pts{font-size:.6rem;color:#1f8f4e;font-weight:800;white-space:nowrap}
+
+/* ===== ¿Cómo se puntúa el cuadro? (eliminatorias) ===== */
+.ko-explain{margin:14px 0;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ko-explain>summary{cursor:pointer;list-style:none;padding:13px 15px;font-weight:800;color:var(--green);font-size:.97rem;background:#f3faf5}
+.ko-explain>summary::-webkit-details-marker{display:none}
+.ko-explain>summary::after{content:"▾";float:right;color:var(--muted)}
+.ko-explain[open]>summary::after{content:"▴"}
+.ko-key{background:#eaf4ee;border-left:4px solid var(--green);border-radius:9px;padding:10px 12px;margin:0 0 12px;font-size:.9rem;line-height:1.5}
+.ko-pts{display:grid;gap:6px;margin-bottom:13px}
+.ko-pt{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f6f9f7;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:.9rem}
+.ko-pt.win{background:#fff7e6;border-color:#f0d79a}
+.ko-pt .pp{background:var(--green);color:#fff;font-weight:800;border-radius:7px;padding:2px 9px;font-size:.84rem;white-space:nowrap}
+.ko-pt.win .pp{background:#e0a106}
+.ko-ex{background:#f8f6ff;border:1px solid #e2dbf5;border-radius:11px;padding:11px 13px;margin-bottom:12px}
+.ko-ex-h{font-weight:800;color:#6a4fc8;font-size:.86rem;margin-bottom:6px}
+.ko-ex p{margin:6px 0;font-size:.88rem;line-height:1.5}
+.ko-ex-run{background:#fff;border-radius:8px;padding:7px 10px;font-size:.82rem;line-height:1.7}
+.ko-ex-run b{color:#1f8f4e}
+.ko-notes{list-style:none;padding:0;margin:0;display:grid;gap:7px}
+.ko-notes li{background:#f6f9f7;border-radius:8px;padding:8px 11px;font-size:.86rem;line-height:1.45}

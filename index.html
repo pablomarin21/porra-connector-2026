@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Porra Mundial" />
-  <link rel="stylesheet" href="styles.css?v=41" />
+  <link rel="stylesheet" href="styles.css?v=42" />
 </head>
 <body x-data="porraApp()" x-init="init()" x-cloak>
 
@@ -529,6 +529,37 @@
           </div>
         </div>
         <p class="tiny muted">💡 <b>En vivo solo cuentan los marcadores.</b> El plus de grupo se suma cuando ese grupo termina. El organizador puede ajustar los valores en Admin → Puntuación.</p>
+      </div>
+    </details>
+
+    <!-- Cómo se puntúa el CUADRO cuando acaban los grupos -->
+    <details class="se-explain ko-explain">
+      <summary>🏆 ¿Cómo se puntúa el cuadro cuando acaben los grupos?</summary>
+      <div class="se-body">
+        <p class="ko-key">En grupos puntúas por los <b>marcadores</b> que clavaste; pero en eliminatorias cada uno montó un cuadro distinto y los cruces reales serán otros (dependen de cómo queden <b>todos</b> los grupos). Por eso <b>NO se puntúan los emparejamientos</b> (quién juega contra quién). <b>Se puntúa lo lejos que llega cada equipo que TÚ pusiste</b>, sin importar el rival ni por qué lado del cuadro pase.</p>
+
+        <div class="ko-pts">
+          <div class="ko-pt"><span class="ko-r">🥉 Tus mejores terceros que clasifican</span><span class="pp" x-text="'+'+settings.thirdQual"></span></div>
+          <div class="ko-pt"><span class="ko-r">Tu equipo llega a <b>octavos</b></span><span class="pp" x-text="'+'+settings.octavos"></span></div>
+          <div class="ko-pt"><span class="ko-r">…llega a <b>cuartos</b></span><span class="pp" x-text="'+'+settings.cuartos"></span></div>
+          <div class="ko-pt"><span class="ko-r">…llega a <b>semis</b></span><span class="pp" x-text="'+'+settings.semis"></span></div>
+          <div class="ko-pt"><span class="ko-r">…llega a la <b>final</b></span><span class="pp" x-text="'+'+settings.finalists"></span></div>
+          <div class="ko-pt win"><span class="ko-r">…es <b>campeón</b></span><span class="pp" x-text="'+'+settings.champion"></span></div>
+        </div>
+
+        <div class="ko-ex">
+          <div class="ko-ex-h">📌 Ejemplo sencillo</div>
+          <p>Pusiste a <b>🇧🇷 Brasil</b> de finalista. En el cuadro de verdad los grupos quedan distintos a tu pronóstico, así que Brasil cae por otra zona y se cruza con equipos que tú <b>no</b> habías colocado ahí. <b>Da igual el camino:</b></p>
+          <p class="ko-ex-run">gana su 1/16 → octavos <b x-text="'+'+settings.octavos"></b> · gana otra → cuartos <b x-text="'+'+settings.cuartos"></b> · otra → semis <b x-text="'+'+settings.semis"></b> · otra → final <b x-text="'+'+settings.finalists"></b></p>
+          <p>Si encima lo pusiste de <b>campeón</b> y lo gana, <b x-text="'+'+settings.champion"></b> más. Ese equipo te iría dando puntos <b>en cada ronda que supere</b> (se acumulan). Si Brasil cae en cuartos, te quedas con lo que llegó (octavos + cuartos).</p>
+        </div>
+
+        <ul class="ko-notes">
+          <li>✅ <b>No hace falta acertar el cruce exacto.</b> Solo cuenta a qué ronda llega cada equipo tuyo.</li>
+          <li>🎯 Solo puntúan los equipos que <b>tú</b> colocaste en esa ronda. Si un equipo llega lejos pero no lo pusiste ahí, no suma.</li>
+          <li>📡 Va <b>en directo</b>: cada partido de eliminatorias que termina actualiza los puntos al momento.</li>
+          <li>⚖️ En caso de empate a puntos, <b>desempata quien más puntúe en el cuadro</b> (octavos→campeón). Por eso ir lejos pesa mucho.</li>
+        </ul>
       </div>
     </details>
 
@@ -1330,10 +1361,10 @@
   </div>
 
   <!-- ====== Dependencias ====== -->
-  <script src="data.js?v=41"></script>
-  <script src="engine.js?v=41"></script>
+  <script src="data.js?v=42"></script>
+  <script src="engine.js?v=42"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=41"></script>
+  <script src="app.js?v=42"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </body>
 </html>
