@@ -420,7 +420,9 @@
       const sA = parseInt(A.score, 10), sB = parseInt(B.score, 10);
       const koWin = DATA.KO_WINDOWS.find((w) => date >= w.from && date <= w.to);
       const fx = pairToFx[[tA, tB].slice().sort().join("|")];
-      if (fx && !koWin) {
+      // Es un partido de GRUPO si sus 2 equipos forman un cruce de grupo y aún no está registrado,
+      // INDEPENDIENTE de la fecha (la última jornada de grupos cae el mismo día que empiezan los 1/16).
+      if (fx && !groupMap[fx.code]) {
         if (completed && !isNaN(sA) && !isNaN(sB)) {
           const home = fx.home === tA ? sA : sB, away = fx.home === tA ? sB : sA;
           groupMap[fx.code] = { played: true, home_score: home, away_score: away };
